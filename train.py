@@ -3,6 +3,9 @@
 
 
 import os
+from torchlib import network
+from torchlib.datasets import dataset
+
 
 # Configure models
 model_name = 'cb_model'
@@ -157,6 +160,7 @@ save_every = 500
 # Ensure dropout layers are in train mode
 encoder.train()
 decoder.train()
+
 # Initialize optimizers
 print('Building optimizers ...')
 encoder_optimizer = optim.Adam(encoder.parameters(), lr=learning_rate)

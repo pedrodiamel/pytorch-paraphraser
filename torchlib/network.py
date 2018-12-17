@@ -1,6 +1,9 @@
 
 
 
+
+
+
 def train(input_variable, lengths, target_variable, mask, max_target_len, encoder, decoder, embedding,
           encoder_optimizer, decoder_optimizer, batch_size, clip, max_length=MAX_LENGTH):
 
@@ -95,9 +98,15 @@ class GreedySearchDecoder(nn.Module):
         # Iteratively decode one word token at a time
         for _ in range(max_length):
             # Forward pass through decoder
-            decoder_output, decoder_hidden = self.decoder(decoder_input, decoder_hidden, encoder_outputs)
+            decoder_output, decoder_hidden = self.decoder(decoder_input, dec__version__ = "0.0"
+
+from torchlib import models
+from torchlib import datasetsr_hidden, encoder_outputs)
             # Obtain most likely word token and its softmax score
-            decoder_scores, decoder_input = torch.max(decoder_output, dim=1)
+            decoder_scores, decoder_input = torch.max(decoder_output, dim=1)__version__ = "0.0"
+
+from torchlib import models
+from torchlib import datasets
             # Record token and score
             all_tokens = torch.cat((all_tokens, decoder_input), dim=0)
             all_scores = torch.cat((all_scores, decoder_scores), dim=0)
