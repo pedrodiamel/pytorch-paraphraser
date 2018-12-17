@@ -3,8 +3,8 @@
 import os
 import itertools
 import random
-from utils import (normalizeString, filterPairs )
-from language import (Lang, inputVar, outputVar )
+from .utils import (normalizeString, filterPairs )
+from .language import (Lang, inputVar, outputVar )
 
 
 def readLangs(pathname, lang1, lang2, reverse=False):

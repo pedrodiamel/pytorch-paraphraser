@@ -3,15 +3,24 @@
 
 
 import os
+
+import torch
+import torch.nn as nn
+from torch import optim
+import torch.nn.functional as F
+
 from torchlib import network
 from torchlib.datasets import dataset
+from torchlib.models.attnet import (EncoderRNN, LuongAttnDecoderRNN)
 
+
+USE_CUDA = torch.cuda.is_available()
+device = torch.device("cuda" if USE_CUDA else "cpu")
 
 # Configure models
+pathdata = '../../rec/data'
 model_name = 'cb_model'
-attn_model = 'dot'
-#attn_model = 'general'
-#attn_model = 'concat'
+attn_model = 'dot' #'general', 'concat' 
 hidden_size = 500
 encoder_n_layers = 2
 decoder_n_layers = 2
@@ -20,15 +29,25 @@ batch_size = 64
 corpus_name='anki'
 save_dir = os.path.join("../out", "save")
 
+# Configure training/optimization
+clip = 50.0
+teacher_forcing_ratio = 1.0
+learning_rate = 0.0001
+decoder_learning_ratio = 5.0
+n_iteration = 10000
+print_every = 400
+save_every = 500
+
+lan_in = 'eng'
+lan_out = 'por'
+
+
 # Set checkpoint to load from; set to None if starting from scratch
 loadFilename = None
 # checkpoint_iter = 4000
 # loadFilename = os.path.join(save_dir, model_name, corpus_name,
 #                            '{}-{}_{}'.format(encoder_n_layers, decoder_n_layers, hidden_size),
 #                            '{}_checkpoint.tar'.format(checkpoint_iter))
-
-
-
 
 def trainIters(
     model_name, 
@@ -102,9 +121,6 @@ def trainIters(
     return plot_losses
 
 
-
-
-
 # Load model if a loadFilename is provided
 if loadFilename:
     # If loading on same machine the model was trained on
@@ -141,20 +157,10 @@ if loadFilename:
 # Use appropriate device
 encoder = encoder.to(device)
 decoder = decoder.to(device)
-print('Models built and ready to go!')
 
+print('Models built and ready to go!')
 print(encoder)
 print(decoder)
-
-
-# Configure training/optimization
-clip = 50.0
-teacher_forcing_ratio = 1.0
-learning_rate = 0.0001
-decoder_learning_ratio = 5.0
-n_iteration = 10000
-print_every = 400
-save_every = 500
 
 
 # Ensure dropout layers are in train mode
