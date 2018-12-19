@@ -61,13 +61,13 @@ class TxtDataset( object ):
         reserse
     '''
 
-    def __init__(self, pathname, lang1, lang2, small_batch_size=5, reserse=True):
+    def __init__(self, pathname, lang1, lang2, batch_size=5, reserse=True):
         
         self.pathname = pathname
         self.lang1 = lang1
         self.lang2 = lang2
         self.reserse = reserse
-        self.small_batch_size = small_batch_size
+        self.batch_size = batch_size
 
         #create dataset
         input_lang, output_lang, pairs = prepareData( pathname, lang1, lang2, reserse )
@@ -77,7 +77,7 @@ class TxtDataset( object ):
         
 
     def getbatch(self):
-        return self.batch2TrainData( self.input_lang, self.output_lang,  [random.choice(self.pairs) for _ in range(self.small_batch_size)]  )
+        return self.batch2TrainData( self.input_lang, self.output_lang,  [random.choice(self.pairs) for _ in range(self.batch_size)]  )
 
     # Returns all items for a given batch of pairs
     def batch2TrainData(self, input_lang, output_lang , pair_batch):
@@ -108,7 +108,7 @@ def test_dataset():
         '../../rec/data', 
         'eng', 
         'por', 
-        small_batch_size=5,
+        batch_size=5,
         reserse=True
     )
     

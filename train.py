@@ -10,7 +10,7 @@ from torch import optim
 import torch.nn.functional as F
 
 from torchlib import network
-from torchlib.datasets import dataset
+from torchlib.datasets.dataset import TxtDataset
 from torchlib.models.attnet import (EncoderRNN, LuongAttnDecoderRNN)
 
 
@@ -18,7 +18,7 @@ USE_CUDA = torch.cuda.is_available()
 device = torch.device("cuda" if USE_CUDA else "cpu")
 
 # Configure models
-pathdata = '../../rec/data'
+pathdata = 'rec/data'
 model_name = 'cb_model'
 attn_model = 'dot' #'general', 'concat' 
 hidden_size = 500
@@ -27,7 +27,7 @@ decoder_n_layers = 2
 dropout = 0.1
 batch_size = 64
 corpus_name='anki'
-save_dir = os.path.join("../out", "save")
+save_dir = os.path.join("out", "save")
 
 # Configure training/optimization
 clip = 50.0
@@ -40,6 +40,10 @@ save_every = 500
 
 lan_in = 'eng'
 lan_out = 'por'
+
+
+# Create dataset
+dataset = TxtDataset( pathdata, 'eng', 'por', batch_size=batch_size, reserse=True )
 
 
 # Set checkpoint to load from; set to None if starting from scratch
