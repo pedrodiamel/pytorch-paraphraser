@@ -65,7 +65,7 @@ def train(
             # Teacher forcing: next input is current target
             decoder_input = target_variable[t].view(1, -1)
             # Calculate and accumulate loss
-            mask_loss, nTotal = maskNLLLoss(decoder_output, target_variable[t], mask[t])
+            mask_loss, nTotal = maskNLLLoss(decoder_output, target_variable[t], mask[t], device)
             loss += mask_loss
             print_losses.append(mask_loss.item() * nTotal)
             n_totals += nTotal
@@ -79,7 +79,7 @@ def train(
             decoder_input = torch.LongTensor([[topi[i][0] for i in range(batch_size)]])
             decoder_input = decoder_input.to(device)
             # Calculate and accumulate loss
-            mask_loss, nTotal = maskNLLLoss(decoder_output, target_variable[t], mask[t])
+            mask_loss, nTotal = maskNLLLoss(decoder_output, target_variable[t], mask[t], device)
             loss += mask_loss
             print_losses.append(mask_loss.item() * nTotal)
             n_totals += nTotal
