@@ -2,13 +2,31 @@
 
 import torch
 import torch.nn as nn
+import random 
+from .loss import maskNLLLoss
+from .datasets import language as lang
 
 MIN_COUNT = 3    # Minimum word count threshold for trimming
 MAX_LENGTH = 10
 
 
-def train(input_variable, lengths, target_variable, mask, max_target_len, encoder, decoder, embedding,
-          encoder_optimizer, decoder_optimizer, batch_size, clip, max_length=MAX_LENGTH):
+def train( 
+    input_variable, 
+    lengths, 
+    target_variable, 
+    mask, 
+    max_target_len, 
+    encoder, 
+    decoder, 
+    embedding,
+    encoder_optimizer, 
+    decoder_optimizer, 
+    batch_size, 
+    clip, 
+    device, 
+    max_length=MAX_LENGTH,
+    teacher_forcing_ratio=1.0
+    ):
 
     # Zero gradients
     encoder_optimizer.zero_grad()
@@ -29,7 +47,7 @@ def train(input_variable, lengths, target_variable, mask, max_target_len, encode
     encoder_outputs, encoder_hidden = encoder(input_variable, lengths)
 
     # Create initial decoder input (start with SOS tokens for each sentence)
-    decoder_input = torch.LongTensor([[SOS_token for _ in range(batch_size)]])
+    decoder_input = torch.LongTensor([[ lang.SOS_token for _ in range(batch_size) ]])
     decoder_input = decoder_input.to(device)
 
     # Set initial decoder hidden state to the encoder's final hidden state
@@ -83,21 +101,22 @@ def train(input_variable, lengths, target_variable, mask, max_target_len, encode
 
 
 class GreedySearchDecoder(nn.Module):
-    def __init__(self, encoder, decoder):
+    def __init__(self, encoder, decoder, device):
         super(GreedySearchDecoder, self).__init__()
         self.encoder = encoder
         self.decoder = decoder
+        self.device = device 
 
     def forward(self, input_seq, input_length, max_length):
         # Forward input through encoder model
         encoder_outputs, encoder_hidden = self.encoder(input_seq, input_length)
         # Prepare encoder's final hidden layer to be first hidden input to the decoder
-        decoder_hidden = encoder_hidden[:decoder.n_layers]
+        decoder_hidden = encoder_hidden[:self.decoder.n_layers]
         # Initialize decoder input with SOS_token
-        decoder_input = torch.ones(1, 1, device=device, dtype=torch.long) * SOS_token
+        decoder_input = torch.ones(1, 1, device=self.device, dtype=torch.long) * lang.SOS_token
         # Initialize tensors to append decoded words to
-        all_tokens = torch.zeros([0], device=device, dtype=torch.long)
-        all_scores = torch.zeros([0], device=device)
+        all_tokens = torch.zeros([0], device=self.device, dtype=torch.long)
+        all_scores = torch.zeros([0], device=self.device)
         # Iteratively decode one word token at a time
         for _ in range(max_length):
             # Forward pass through decoder

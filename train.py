@@ -55,8 +55,7 @@ loadFilename = None
 
 def trainIters(
     model_name, 
-    input_lang, output_lang, 
-    pairs, 
+    dataset,
     encoder, 
     decoder, 
     encoder_optimizer, 
@@ -71,11 +70,12 @@ def trainIters(
     save_every, 
     clip, 
     corpus_name, 
-    loadFilename):
+    loadFilename,
+    device
+    ):
 
     # Load batches for each iteration
-    training_batches = [batch2TrainData(input_lang, output_lang, [random.choice(pairs) for _ in range(batch_size)])
-                      for _ in range(n_iteration)]
+    training_batches = [ dataset.getbatch() for _ in range(n_iteration)]
 
     # Initializations
     print('Initializing ...')
@@ -89,12 +89,13 @@ def trainIters(
     print("Training...")
     for iteration in range(start_iteration, n_iteration + 1):
         training_batch = training_batches[iteration - 1]
+
         # Extract fields from batch
         input_variable, lengths, target_variable, mask, max_target_len = training_batch
 
         # Run a training iteration with batch
-        loss = train(input_variable, lengths, target_variable, mask, max_target_len, encoder,
-                     decoder, embedding, encoder_optimizer, decoder_optimizer, batch_size, clip)
+        loss = network.train(input_variable, lengths, target_variable, mask, max_target_len, encoder,
+                     decoder, embedding, encoder_optimizer, decoder_optimizer, batch_size, clip, device)
         print_loss += loss
 
         # Print progress
@@ -116,8 +117,8 @@ def trainIters(
                 'en_opt': encoder_optimizer.state_dict(),
                 'de_opt': decoder_optimizer.state_dict(),
                 'loss': loss,
-                'input_lang_dict': input_lang.__dict__,
-                'output_lang_dict': output_lang.__dict__,
+                'input_lang_dict': dataset.input_lang.__dict__,
+                'output_lang_dict': dataset.output_lang.__dict__,
                 'embedding': embedding.state_dict()
                 
             }, os.path.join(directory, '{}_{}.tar'.format(iteration, 'checkpoint')))
@@ -136,20 +137,20 @@ if loadFilename:
     encoder_optimizer_sd = checkpoint['en_opt']
     decoder_optimizer_sd = checkpoint['de_opt']
     embedding_sd = checkpoint['embedding']
-    input_lang.__dict__ = checkpoint['input_lang_dict']
-    output_lang.__dict__ = checkpoint['output_lang_dict']
+    dataset.input_lang.__dict__ = checkpoint['input_lang_dict']
+    dataset.output_lang.__dict__ = checkpoint['output_lang_dict']
 
 
 print('Building encoder and decoder ...')
 # Initialize word embeddings
-embedding = nn.Embedding( input_lang.n_words, hidden_size)
+embedding = nn.Embedding( dataset.input_lang.n_words, hidden_size)
 
 if loadFilename:
     embedding.load_state_dict(embedding_sd)
     
 # Initialize encoder & decoder models
 encoder = EncoderRNN(hidden_size, embedding, encoder_n_layers, dropout)
-decoder = LuongAttnDecoderRNN(attn_model, embedding, hidden_size, output_lang.n_words, decoder_n_layers, dropout)
+decoder = LuongAttnDecoderRNN(attn_model, embedding, hidden_size, dataset.output_lang.n_words, decoder_n_layers, dropout)
 
 
 #input_lang, output_lang
@@ -182,9 +183,26 @@ if loadFilename:
 
 # Run training iterations
 print("Starting Training!")
-plot_losses = trainIters(model_name, input_lang, output_lang, pairs, encoder, decoder, encoder_optimizer, decoder_optimizer,
-           embedding, encoder_n_layers, decoder_n_layers, save_dir, n_iteration, batch_size,
-           print_every, save_every, clip, corpus_name, loadFilename)
+plot_losses = trainIters(
+    model_name, 
+    dataset, 
+    encoder, 
+    decoder, 
+    encoder_optimizer, 
+    decoder_optimizer,
+    embedding, 
+    encoder_n_layers, 
+    decoder_n_layers, 
+    save_dir, 
+    n_iteration, 
+    batch_size,
+    print_every, 
+    save_every, 
+    clip, 
+    corpus_name, 
+    loadFilename,
+    device
+    )
 
 
 
