@@ -53,6 +53,7 @@ class Lang:
         self.word2count = {}
         self.index2word = {PAD_token: "PAD", SOS_token: "SOS", EOS_token: "EOS"}
         self.n_words = 3  # Count SOS, EOS, PAD
+                
 
     def addSentence(self, sentence):
         for word in sentence.split(' '):
@@ -72,7 +73,6 @@ class Lang:
         if self.trimmed:
             return
         self.trimmed = True
-
         keep_words = []
 
         for k, v in self.word2count.items():

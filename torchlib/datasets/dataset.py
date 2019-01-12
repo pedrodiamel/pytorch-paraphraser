@@ -80,8 +80,7 @@ class TxtDataset( object ):
         return self.batch2TrainData( self.input_lang, self.output_lang,  [random.choice(self.pairs) for _ in range(self.batch_size)]  )
 
     # Returns all items for a given batch of pairs
-    def batch2TrainData(self, input_lang, output_lang , pair_batch):
-        
+    def batch2TrainData(self, input_lang, output_lang , pair_batch):        
         pair_batch.sort(key=lambda x: len(x[0].split(" ")), reverse=True)
         input_batch, output_batch = [], []
         for pair in pair_batch:
@@ -93,14 +92,11 @@ class TxtDataset( object ):
 
 
 
-
 def test_prepare_data():
     input_lang, output_lang, pairs = prepareData('../../rec/data', 'eng', 'por', True)
     # print(random.choice(pairs))
     for pair in pairs[:10]:
         print(pair)
-
-# test_prepare_data()
 
 def test_dataset():
 
@@ -122,4 +118,6 @@ def test_dataset():
     print("max_target_len:", max_target_len)
 
 
+
+# test_prepare_data()
 # test_dataset()
