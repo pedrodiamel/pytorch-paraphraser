@@ -1,208 +1,151 @@
 
-
-
-
+# STD MODULE
 import os
+import numpy as np
+import cv2
+import random
 
+# TORCH MODULE
 import torch
-import torch.nn as nn
-from torch import optim
-import torch.nn.functional as F
+from torch.utils.data import Dataset, DataLoader
+from torch.utils.data.sampler import SubsetRandomSampler
+import torch.backends.cudnn as cudnn
 
-from torchlib import network
-from torchlib.datasets.dataset import TxtDataset
-from torchlib.models.attnet import (EncoderRNN, LuongAttnDecoderRNN)
+# LOCAL MODULE
+from torchlib.datasets.dataset  import TxtTripletDataset
+from torchlib.neuralnet import NeuralNetNLP
 
+from argparse import ArgumentParser
+import datetime
 
-USE_CUDA = torch.cuda.is_available()
-device = torch.device("cuda" if USE_CUDA else "cpu")
+def arg_parser():
+    """Arg parser"""    
+    parser = ArgumentParser()
+    parser.add_argument('data', metavar='DIR', 
+                        help='path to dataset')
+    parser.add_argument('--vocabulary', type=str, metavar='NAME',
+                        help='(default: none)')
 
-# Configure models
-pathdata = 'rec/data'
-model_name = 'cb_model'
-attn_model = 'dot' #'general', 'concat' 
-hidden_size = 500
-encoder_n_layers = 2
-decoder_n_layers = 2
-dropout = 0.1
-batch_size = 64
-corpus_name='anki'
-save_dir = os.path.join("out", "save")
+    parser.add_argument('--no-cuda', action='store_true', default=False,
+                        help='enables CUDA training')
+    parser.add_argument('-g', '--gpu', default=0, type=int, metavar='N',
+                        help='divice number (default: 0)')
+    parser.add_argument('--seed', type=int, default=1,
+                        help='random seed (default: 1)')
 
-# Configure training/optimization
-clip = 50.0
-teacher_forcing_ratio = 1.0
-learning_rate = 0.0001
-decoder_learning_ratio = 5.0
-n_iteration = 10000
-print_every = 400
-save_every = 500
-
-lan_in = 'eng'
-lan_out = 'por'
+    parser.add_argument('--epochs', default=90, type=int, metavar='N',
+                        help='number of total epochs to run')
+    parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
+                        help='manual epoch number (useful on restarts)')
 
 
-# Create dataset
-dataset = TxtDataset( pathdata, 'eng', 'por', batch_size=batch_size, reserse=True )
+    parser.add_argument('-b', '--batch-size', default=256, type=int, metavar='N', 
+                        help='mini-batch size (default: 256)')
+    parser.add_argument('-n', '--nbatch', default=30, type=int, metavar='N', 
+                        help='number of batch (default: 30)')
 
 
-# Set checkpoint to load from; set to None if starting from scratch
-loadFilename = None
-# checkpoint_iter = 4000
-# loadFilename = os.path.join(save_dir, model_name, corpus_name,
-#                            '{}-{}_{}'.format(encoder_n_layers, decoder_n_layers, hidden_size),
-#                            '{}_checkpoint.tar'.format(checkpoint_iter))
+    parser.add_argument('--lr', '--learning-rate', default=0.0001, type=float, metavar='LR',
+                        help='initial learning rate')
+    parser.add_argument('--momentum', type=float, default=0.5, metavar='M',
+                        help='SGD momentum (default: 0.5)')
+    parser.add_argument('--print-freq', '-p', default=10, type=int, metavar='N',
+                        help='print frequency (default: 10)')
+    parser.add_argument('--project', default='./runs', type=str, metavar='PATH',
+                        help='path to project (default: ./runs)')
+    parser.add_argument('--name', default='exp', type=str,
+                        help='name of experiment')
+    parser.add_argument('--resume', type=str, metavar='NAME',
+                        help='name to latest checkpoint (default: none)')
+    parser.add_argument('--arch', default='simplenet', type=str,
+                        help='architecture')
+    parser.add_argument('--finetuning', action='store_true', default=False,
+                        help='Finetuning')
+    parser.add_argument('--loss', default='cross', type=str,
+                        help='loss function')
+    parser.add_argument('--opt', default='adam', type=str,
+                        help='optimize function')
+    parser.add_argument('--scheduler', default='fixed', type=str,
+                        help='scheduler function for learning rate')
+    parser.add_argument('--snapshot', '-sh', default=10, type=int, metavar='N',
+                        help='snapshot (default: 10)')
+    parser.add_argument('--parallel', action='store_true', default=False,
+                        help='Parallel')
 
-def trainIters(
-    model_name, 
-    dataset,
-    encoder, 
-    decoder, 
-    encoder_optimizer, 
-    decoder_optimizer, 
-    embedding, 
-    encoder_n_layers, 
-    decoder_n_layers, 
-    save_dir, 
-    n_iteration, 
-    batch_size, 
-    print_every, 
-    save_every, 
-    clip, 
-    corpus_name, 
-    loadFilename,
-    device
-    ):
-
-    # Load batches for each iteration
-    training_batches = [ dataset.getbatch() for _ in range(n_iteration)]
-
-    # Initializations
-    print('Initializing ...')
-    start_iteration = 1
-    print_loss = 0
-    plot_losses = []
-    if loadFilename:
-        start_iteration = checkpoint['iteration'] + 1
-
-    # Training loop
-    print("Training...")
-    for iteration in range(start_iteration, n_iteration + 1):
-        training_batch = training_batches[iteration - 1]
-
-        # Extract fields from batch
-        input_variable, lengths, target_variable, mask, max_target_len = training_batch
-
-        # Run a training iteration with batch
-        loss = network.train(input_variable, lengths, target_variable, mask, max_target_len, encoder,
-                     decoder, embedding, encoder_optimizer, decoder_optimizer, batch_size, clip, device)
-        print_loss += loss
-
-        # Print progress
-        if iteration % print_every == 0:
-            print_loss_avg = print_loss / print_every
-            plot_losses.append(print_loss_avg)
-            print("Iteration: {}; Percent complete: {:.1f}%; Average loss: {:.4f}".format(iteration, iteration / n_iteration * 100, print_loss_avg))
-            print_loss = 0
-
-        # Save checkpoint
-        if (iteration % save_every == 0):
-            directory = os.path.join(save_dir, model_name, corpus_name, '{}-{}_{}'.format(encoder_n_layers, decoder_n_layers, hidden_size))
-            if not os.path.exists(directory):
-                os.makedirs(directory)
-            torch.save({
-                'iteration': iteration,
-                'en': encoder.state_dict(),
-                'de': decoder.state_dict(),
-                'en_opt': encoder_optimizer.state_dict(),
-                'de_opt': decoder_optimizer.state_dict(),
-                'loss': loss,
-                'input_lang_dict': dataset.input_lang.__dict__,
-                'output_lang_dict': dataset.output_lang.__dict__,
-                'embedding': embedding.state_dict()
-                
-            }, os.path.join(directory, '{}_{}.tar'.format(iteration, 'checkpoint')))
-         
-    return plot_losses
+    parser.add_argument('--name-dataset', default='txt', type=str,
+                        help='name dataset')
 
 
-# Load model if a loadFilename is provided
-if loadFilename:
-    # If loading on same machine the model was trained on
-    checkpoint = torch.load(loadFilename)
-    # If loading a model trained on GPU to CPU
-    #checkpoint = torch.load(loadFilename, map_location=torch.device('cpu'))
-    encoder_sd = checkpoint['en']
-    decoder_sd = checkpoint['de']
-    encoder_optimizer_sd = checkpoint['en_opt']
-    decoder_optimizer_sd = checkpoint['de_opt']
-    embedding_sd = checkpoint['embedding']
-    dataset.input_lang.__dict__ = checkpoint['input_lang_dict']
-    dataset.output_lang.__dict__ = checkpoint['output_lang_dict']
+    return parser
 
 
-print('Building encoder and decoder ...')
-# Initialize word embeddings
-embedding = nn.Embedding( dataset.input_lang.n_words, hidden_size)
-
-if loadFilename:
-    embedding.load_state_dict(embedding_sd)
+def main():
     
-# Initialize encoder & decoder models
-encoder = EncoderRNN(hidden_size, embedding, encoder_n_layers, dropout)
-decoder = LuongAttnDecoderRNN(attn_model, embedding, hidden_size, dataset.output_lang.n_words, decoder_n_layers, dropout)
-
-
-#input_lang, output_lang
-
-if loadFilename:
-    encoder.load_state_dict(encoder_sd)
-    decoder.load_state_dict(decoder_sd)
+    # parameters
+    parser = arg_parser();
+    args = parser.parse_args();
+    random.seed(0)
+    cudnn.benchmark = True
     
-# Use appropriate device
-encoder = encoder.to(device)
-decoder = decoder.to(device)
-
-print('Models built and ready to go!')
-print(encoder)
-print(decoder)
-
-
-# Ensure dropout layers are in train mode
-encoder.train()
-decoder.train()
-
-# Initialize optimizers
-print('Building optimizers ...')
-encoder_optimizer = optim.Adam(encoder.parameters(), lr=learning_rate)
-decoder_optimizer = optim.Adam(decoder.parameters(), lr=learning_rate * decoder_learning_ratio)
-
-if loadFilename:
-    encoder_optimizer.load_state_dict(encoder_optimizer_sd)
-    decoder_optimizer.load_state_dict(decoder_optimizer_sd)
-
-# Run training iterations
-print("Starting Training!")
-plot_losses = trainIters(
-    model_name, 
-    dataset, 
-    encoder, 
-    decoder, 
-    encoder_optimizer, 
-    decoder_optimizer,
-    embedding, 
-    encoder_n_layers, 
-    decoder_n_layers, 
-    save_dir, 
-    n_iteration, 
-    batch_size,
-    print_every, 
-    save_every, 
-    clip, 
-    corpus_name, 
-    loadFilename,
-    device
+    print('Baseline nlp paragrap paraphrase {}!!!'.format(datetime.datetime.now()))
+    print('\nArgs:')
+    [ print('\t* {}: {}'.format(k,v) ) for k,v in vars(args).items() ]
+    print('')
+    
+    
+    # datasets
+    # training dataset
+    dataset = TxtTripletDataset(
+        pathname=args.data,  
+        pathvocabulary=args.vocabulary,
+        nbatch=args.nbatch,
+        batch_size=args.batch_size
     )
+        
+        
+    print('Load datset')
+    print( len(dataset) )
+    #print('Train: ', len(train_data))
+    #print('Val: ', len(val_data))
 
 
+    network = NeuralNetNLP(
+        patchproject=args.project,
+        nameproject=args.name,
+        no_cuda=args.no_cuda,
+        parallel=args.parallel,
+        seed=args.seed,
+        print_freq=args.print_freq,
+        gpu=args.gpu
+        )
+
+    network.create( 
+        arch=args.arch, 
+        embedded=dataset.voc.embeddings,
+        loss=args.loss, 
+        lr=args.lr, 
+        momentum=args.momentum,
+        optimizer=args.opt,
+        lrsch=args.scheduler,
+        pretrained=args.finetuning,
+        )    
+    
+    # resume model
+    if args.resume:
+        network.resume( os.path.join(network.pathmodels, args.resume ) )
+
+    # print neural net class
+    print('Load model: ')
+    print(network)
+    
+    # training neural net
+    network.fit( dataset, dataset, args.epochs, args.snapshot )
+    
+    print("Optimization Finished!")
+    print("DONE!!!")
+
+
+
+if __name__ == '__main__':
+    main()
 

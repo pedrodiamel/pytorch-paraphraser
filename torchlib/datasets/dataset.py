@@ -1,123 +1,80 @@
 
 
 import os
+import numpy as np
 import itertools
 import random
-from .utils import (normalizeString, filterPairs )
-from .language import (Lang, inputVar, outputVar )
+
+import torch
+import torch.nn as nn
+
+from .utils import (normalizeString, filterPairs, read_paraphraser )
+from .vocabulary import (Vocabulary, inputVar, outputVar )
 
 
-def readLangs(pathname, lang1, lang2, reverse=False):
-    '''Read language from file 
-    Arg:
-        pathname: (../rec/data/)
-        lang1: (por)
-        lang2: (eng)
-        reverse: if reverse languaje in the text
-    '''
-    print("Reading lines...")
-
-    # Read the file and split into lines
-    lines = open(  os.path.join(pathname, '{}-{}.txt'.format(lang1, lang2) ) , encoding='utf-8').\
-        read().strip().split('\n')
-
-    # Split every line into pairs and normalize
-    pairs = [[normalizeString(s) for s in l.split('\t')] for l in lines]
-
-    # Reverse pairs, make Lang instances
-    if reverse:
-        pairs = [list(reversed(p)) for p in pairs]
-        input_lang = Lang(lang2)
-        output_lang = Lang(lang1)
-    else:
-        input_lang = Lang(lang1)
-        output_lang = Lang(lang2)
-
-    return input_lang, output_lang, pairs
-
-
-def prepareData(pathname, lang1, lang2, reverse=False):
-    input_lang, output_lang, pairs = readLangs(pathname, lang1, lang2, reverse)
+def prepare_data( pathname, pathvocabulary ):
+    pairs = read_paraphraser( pathname)
+    voc = Vocabulary()
+    voc.load_embeddings( pathvocabulary, type='emb' )  
     print("Read %s sentence pairs" % len(pairs))
-    pairs = filterPairs(pairs)
-    print("Trimmed to %s sentence pairs" % len(pairs))
-    print("Counting words...")
-    for pair in pairs:
-        input_lang.addSentence(pair[0])
-        output_lang.addSentence(pair[1])
+    pairs = filterPairs(pairs)        
     print("Counted words:")
-    print(input_lang.name, input_lang.n_words)
-    print(output_lang.name, output_lang.n_words)
-    return input_lang, output_lang, pairs
+    print(voc.n_words)
+    return voc, pairs
+
+def get_triplets( pairs ):
+    n = len(pairs)
+    i = np.arange( n )
+    j = np.arange( n )
+    while np.sum( (np.abs(i-j) == 0 ) ) != 0:
+        random.shuffle( j )
+    triplets = [ ((pairs[i][0], pairs[i][1], pairs[j[i]][ random.randint( 0,1 ) ]))  for i in range(n) ]    
+    return triplets
 
 
-
-class TxtDataset( object ):
-    '''TxtDataset
+class TxtTripletDataset( object ):
+    '''TxtTripletDataset
     Args:
         pathname
-        lang1
-        lang2
-        reserse
+        pathvocabulary
+        nbatch
+        batch_size
     '''
 
-    def __init__(self, pathname, lang1, lang2, batch_size=5, reserse=True):
-        
+    def __init__(self, pathname, pathvocabulary, nbatch=100, batch_size=5 ):
         self.pathname = pathname
-        self.lang1 = lang1
-        self.lang2 = lang2
-        self.reserse = reserse
+        self.pathvocabulary = pathvocabulary
         self.batch_size = batch_size
-
+        self.nbatch = nbatch        
         #create dataset
-        input_lang, output_lang, pairs = prepareData( pathname, lang1, lang2, reserse )
-        self.input_lang = input_lang
-        self.output_lang = output_lang
+        voc, pairs = prepare_data( pathname, pathvocabulary )
+        self.voc = voc
         self.pairs = pairs
-        
+
+    def __len__(self):
+        return self.nbatch
 
     def getbatch(self):
-        return self.batch2TrainData( self.input_lang, self.output_lang,  [random.choice(self.pairs) for _ in range(self.batch_size)]  )
+        return self.batch2TrainData( [random.choice(self.pairs) for _ in range(self.batch_size)]  )
 
-    # Returns all items for a given batch of pairs
-    def batch2TrainData(self, input_lang, output_lang , pair_batch):        
+    def getbatchs(self):
+        for _ in range( self.nbatch ):
+            yield self.getbatch()
+
+    # Returns all items for a given batch of triplet
+    def batch2TrainData(self, pair_batch):  
         pair_batch.sort(key=lambda x: len(x[0].split(" ")), reverse=True)
-        input_batch, output_batch = [], []
-        for pair in pair_batch:
-            input_batch.append(pair[0])
-            output_batch.append(pair[1])        
-        inp, lengths = inputVar(input_batch, input_lang)
-        output, mask, max_target_len = outputVar(output_batch, output_lang)
-        return inp, lengths, output, mask, max_target_len
-
-
-
-def test_prepare_data():
-    input_lang, output_lang, pairs = prepareData('../../rec/data', 'eng', 'por', True)
-    # print(random.choice(pairs))
-    for pair in pairs[:10]:
-        print(pair)
-
-def test_dataset():
-
-    dataset = TxtDataset( 
-        '../../rec/data', 
-        'eng', 
-        'por', 
-        batch_size=5,
-        reserse=True
-    )
-    
-    batches = dataset.getbatch()
-    input_variable, lengths, target_variable, mask, max_target_len = batches
-
-    print("input_variable:", input_variable)
-    print("lengths:", lengths)
-    print("target_variable:", target_variable)
-    print("mask:", mask)
-    print("max_target_len:", max_target_len)
-
-
-
-# test_prepare_data()
-# test_dataset()
+        triple_batch = get_triplets(pair_batch)
+        s1_batch, s2_batch, t1_batch = [], [], []
+        for triple in triple_batch :
+            s1_batch.append(triple[0])
+            s2_batch.append(triple[1])
+            t1_batch.append(triple[2])  
+        s1, s1_mask, s1_max_len = outputVar(s1_batch, self.voc)
+        s2, s2_mask, s2_max_len = outputVar(s2_batch, self.voc)
+        t1, t1_mask, t1_max_len = outputVar(t1_batch, self.voc)    
+        return (
+            s1, s1_mask, s1_max_len, 
+            s2, s2_mask, s2_max_len, 
+            t1, t1_mask, t1_max_len 
+            )
