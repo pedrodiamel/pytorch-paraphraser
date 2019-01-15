@@ -3,7 +3,7 @@
 # parameters
 DATA='../rec/data/para-nmt-50m-small.txt'
 VOCPATH='../rec/data/ngram-word-concat-40.pickle'
-NAMEDATASET='cifar10'
+NAMEDATASET='txt'
 PROJECT='../out/netruns'
 EPOCHS=300
 NBATCH=100

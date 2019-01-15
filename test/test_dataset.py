@@ -17,13 +17,14 @@ def test_prepare_data():
         print(pair)
 
 
-def test_dataset():
+def test_triplet_dataset():
 
     pathname = '../rec/data/para-nmt-50m-small.txt'
     pathvocabulary = '../rec/data/ngram-word-concat-40.pickle'
     data = dataset.TxtTripletDataset( 
         pathname,  
         pathvocabulary,
+        nbatch=10,
         batch_size=5,
     )
     
@@ -41,6 +42,28 @@ def test_dataset():
     print("mask:", t1_mask)
 
 
+def test_pairs_dataset():
+    
+    pathname = '../rec/data/para-nmt-50m-small.txt'
+    pathvocabulary = '../rec/data/ngram-word-concat-40.pickle'
+    data = dataset.TxtPairDataset( 
+        pathname,  
+        pathvocabulary,
+        nbatch=10,
+        batch_size=5,
+    )
+    
+    batches = data.getbatch()
+    s1, s1_mask, s1_max_len, s2, s2_mask, s2_max_len = batches
+
+    print("s1_variable:", s1)
+    print("lengths:", s1_max_len)
+    print("mask:", s1_mask)
+    print("s2_variable:", s2)
+    print("lengths:", s2_max_len)
+    print("mask:", s2_mask)
+
 
 # test_prepare_data()
-test_dataset()
+# test_triplet_dataset()
+test_pairs_dataset()

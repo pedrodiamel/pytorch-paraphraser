@@ -84,7 +84,7 @@ def main():
     # parameters
     parser = arg_parser();
     args = parser.parse_args();
-    random.seed(0)
+    random.seed( args.seed )
     cudnn.benchmark = True
     
     print('Baseline nlp paragrap paraphrase {}!!!'.format(datetime.datetime.now()))

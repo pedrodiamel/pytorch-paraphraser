@@ -335,10 +335,13 @@ class NeuralNetAbstractNLP(object):
             if os.path.isfile(pathnamemodel):
                 print("=> loading checkpoint '{}'".format(pathnamemodel))
                 checkpoint = torch.load( pathnamemodel ) if self.cuda else torch.load( pathnamemodel, map_location=lambda storage, loc: storage )
-                self._create_model( checkpoint['arch'], False )              
+                                
+                self._create_model( checkpoint['arch'], None, False )
+
+                self.embedding.load_state_dict( checkpoint['embedding'] )
                 self.net.load_state_dict( checkpoint['state_dict'] )   
                 #self.vocabolary.__dict__ =  checkpoint['vocabolary']     
-                self.embedding.load_state_dict( checkpoint['embedding'] ) 
+                 
                 print("=> loaded checkpoint for {} arch!".format(checkpoint['arch']))
                 bload = True
             else:
@@ -564,12 +567,11 @@ class NeuralNetNLP(NeuralNetAbstractNLP):
                 s2_enc = self.encoder( s2, s2_mask )
                 p_enc = torch.stack( (s1_enc, s2_enc), dim=2 )
                 P.append( p_enc )
-        P = torch.concatenate( P, dim=0 )
+        P = torch.cat( P, dim=0 )
         return P
 
-    def predict(self, dataset):
-        k=0
-        P=[]        
+    def predict(self, dataset):        
+        P_enc=[]; k=0      
         # switch to evaluate mode
         self.net.eval()
         with torch.no_grad():
@@ -584,9 +586,9 @@ class NeuralNetNLP(NeuralNetAbstractNLP):
                 s1_enc = self.encoder( s1, s1_mask )
                 s2_enc = self.encoder( s2, s2_mask )
                 p_enc = torch.stack( (s1_enc, s2_enc), dim=2 )
-                P.append( p_enc )
-        P = torch.concatenate( P, dim=0 )
-        return P
+                P_enc.append( p_enc )
+        P_enc = torch.cat( P_enc, dim=0 )
+        return P_enc
 
     def __call__(self, x, x_mask):       
         # switch to evaluate mode
@@ -609,8 +611,12 @@ class NeuralNetNLP(NeuralNetAbstractNLP):
         self.net = None
         self.encoder = None            
 
+        #if embedding is None:
         self.embedding = nn.Embedding( 74666, 300 ) 
-        #self.embedding = nn.Embedding.from_pretrained( torch.from_numpy( embedding ).float(),  freeze=False )
+        #elif isinstance(data, torch.Tensor):
+        #   self.embedding = embedding
+        #else:   
+        #   self.embedding = nn.Embedding.from_pretrained( torch.from_numpy( embedding ).float(),  freeze=False )
         
         kw = {'embedding': self.embedding, 'pretrained': pretrained}
         self.encoder = netmodels.__dict__[arch](**kw)        
