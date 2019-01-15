@@ -6,25 +6,25 @@ VOCPATH='../rec/data/ngram-word-concat-40.pickle'
 NAMEDATASET='txt'
 PROJECT='../out/netruns'
 EPOCHS=300
-NBATCH=100
-BATCHSIZE=64
-LEARNING_RATE=0.01
+NBATCH=1000
+BATCHSIZE=128
+LEARNING_RATE=0.1
 MOMENTUM=0.9
-PRINT_FREQ=10
-RESUME='chk000199.pth.tar'
+PRINT_FREQ=50
+RESUME='chk000000.pth.tar'
 GPU=1
 ARCH='encoder_ave'
-LOSS='triplet'
+LOSS='tripletloss'
 OPT='sgd'
 SCHEDULER='step'
-SNAPSHOT=5
+SNAPSHOT=20
 EXP_NAME='nlp_'$ARCH'_'$LOSS'_'$OPT'_'$NAMEDATASET'_001'
 
 
-# rm -rf $PROJECT/$EXP_NAME/$EXP_NAME.log
-# rm -rf $PROJECT/$EXP_NAME/
-# mkdir $PROJECT
-# mkdir $PROJECT/$EXP_NAME
+rm -rf $PROJECT/$EXP_NAME/$EXP_NAME.log
+rm -rf $PROJECT/$EXP_NAME/
+mkdir $PROJECT
+mkdir $PROJECT/$EXP_NAME
 
 
 ## execute

@@ -414,7 +414,7 @@ class NeuralNetNLP(NeuralNetAbstractNLP):
         """
 
         cfg_opt= { 'momentum':0.9, 'weight_decay':5e-4 } 
-        cfg_scheduler= { 'step_size':100, 'gamma':0.1  }
+        cfg_scheduler= { 'step_size':30, 'gamma':0.1  }
                     
         super(NeuralNetNLP, self).create( 
             arch, 
@@ -632,7 +632,7 @@ class NeuralNetNLP(NeuralNetAbstractNLP):
     def _create_loss(self, loss):
 
         # create loss
-        if loss == 'triplet':
+        if loss == 'tripletloss':
             self.criterion = netloss.TripletCosineLoss().cuda()
         else:
             assert(False)

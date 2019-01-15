@@ -26,19 +26,19 @@ class VisdomLinePlotter(object):
 
             #print( self.env, self.plots[var_name],  split_name, flush=True)
 
-            # self.viz.line(X=np.array([x]), Y=np.array([y]), 
-            #     env=self.env, 
-            #     win=self.plots[var_name], 
-            #     name=split_name,
-            #     update='append', #insert, append
-            #     opts=dict(showlegend=True)
-            #     )
-
-            self.viz.updateTrace(X=np.array([x]), Y=np.array([y]), 
+            self.viz.line(X=np.array([x]), Y=np.array([y]), 
                 env=self.env, 
                 win=self.plots[var_name], 
-                name=split_name
+                name=split_name,
+                update='append', #insert, append
+                opts=dict(showlegend=True)
                 )
+
+            # self.viz.updateTrace(X=np.array([x]), Y=np.array([y]), 
+            #     env=self.env, 
+            #     win=self.plots[var_name], 
+            #     name=split_name
+            #     )
 
 
 class VisdomScatter(object):
