@@ -16,10 +16,11 @@ def test_model( type='avg'):
 
     pathname = '../rec/data/para-nmt-50m-small.txt'
     pathvocabulary = '../rec/data/ngram-word-concat-40.pickle'
-    data = dataset.TxtDataset( 
+    data = dataset.TxtTripletDataset( 
         pathname,  
         pathvocabulary,
         batch_size=5,
+        nbatch=10,
     )
     
     batches = data.getbatch()
@@ -29,6 +30,8 @@ def test_model( type='avg'):
     
     if type == 'avg':
         encmodel = tripletnet.EncoderAvg( embedding )
+    elif type == 'rnn':
+        encmodel = tripletnet.EncoderRNN( embedding=embedding, hidden_size=300, n_layers=1 )
     else:
         print('[Error]: Type not soport !!!!')
         assert(False)
@@ -46,4 +49,4 @@ def test_model( type='avg'):
 
 
 
-test_model()
+test_model( type='rnn' )

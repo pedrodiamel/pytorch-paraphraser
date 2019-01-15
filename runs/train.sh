@@ -13,12 +13,12 @@ MOMENTUM=0.9
 PRINT_FREQ=50
 RESUME='chk000000.pth.tar'
 GPU=1
-ARCH='encoder_ave'
+ARCH='encoder_rnn' #encoder_ave, encoder_rnn
 LOSS='tripletloss'
 OPT='sgd'
 SCHEDULER='step'
 SNAPSHOT=20
-EXP_NAME='nlp_'$ARCH'_'$LOSS'_'$OPT'_'$NAMEDATASET'_001'
+EXP_NAME='nlp_'$ARCH'_'$LOSS'_'$OPT'_'$NAMEDATASET'_002'
 
 
 rm -rf $PROJECT/$EXP_NAME/$EXP_NAME.log

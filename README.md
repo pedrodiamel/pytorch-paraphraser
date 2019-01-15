@@ -12,6 +12,7 @@ pytorch paraphraser generate
 - https://github.com/kefirski?tab=repositories
 - https://github.com/jhclark/multeval
 - https://github.com/vsuthichai/paraphraser
+- https://github.com/jwieting/para-nmt-50m
 
 
 ## Reference 

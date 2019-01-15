@@ -47,7 +47,7 @@ def main():
     batch_size=None
 
     project='./out/netruns'
-    name='nlp_encoder_ave_triplet_sgd_txt_001'
+    name='nlp_encoder_ave_tripletloss_sgd_txt_001'
     no_cuda=True
     seed=0
     gpu=0
