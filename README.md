@@ -1,5 +1,5 @@
 # pytorch-paraphraser
-pytorch paraphraser generate
+Pytorch Paraphrase Generation
 
 
 ## Datasets 

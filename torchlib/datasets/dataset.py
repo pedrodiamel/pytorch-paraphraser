@@ -24,11 +24,12 @@ def prepare_data( pathname, pathvocabulary ):
 
 def get_triplets( pairs ):
     n = len(pairs)
-    i = np.arange( n )
-    j = np.arange( n )
+    i  = np.arange( n )
+    j  = np.arange( n )
+    ij = np.array([0,1]); random.shuffle( ij ) 
     while np.sum( (np.abs(i-j) == 0 ) ) != 0:
         random.shuffle( j )
-    triplets = [ ((pairs[i][0], pairs[i][1], pairs[j[i]][ random.randint( 0,1 ) ]))  for i in range(n) ]    
+    triplets = [ ((pairs[i][ ij[0] ], pairs[i][ ij[1] ], pairs[j[i]][ random.randint( 0,1 ) ]))  for i in range(n) ]    
     return triplets
 
 
@@ -49,13 +50,11 @@ class TxtTripletDataset( object ):
         ):
 
         self.pathname = pathname
-        self.pathvocabulary = pathvocabulary
-              
+        self.pathvocabulary = pathvocabulary              
         #create dataset
         voc, pairs = prepare_data( pathname, pathvocabulary )
         self.voc = voc
         self.pairs = pairs
-
         self.batch_size = batch_size if batch_size else len(pairs)
         self.nbatch = nbatch  
 
@@ -71,16 +70,25 @@ class TxtTripletDataset( object ):
 
     # Returns all items for a given batch of triplet
     def batch2TrainData(self, pair_batch):  
-        pair_batch.sort(key=lambda x: len(x[0].split(" ")), reverse=True)
+
+        #pair_batch.sort(key=lambda x: len(x[0].split(" ")), reverse=True)
+
         triple_batch = get_triplets(pair_batch)
         s1_batch, s2_batch, t1_batch = [], [], []
         for triple in triple_batch :
             s1_batch.append(triple[0])
             s2_batch.append(triple[1])
             t1_batch.append(triple[2])  
+       
+
         s1, s1_mask, s1_max_len = outputVar(s1_batch, self.voc)
         s2, s2_mask, s2_max_len = outputVar(s2_batch, self.voc)
         t1, t1_mask, t1_max_len = outputVar(t1_batch, self.voc)    
+
+        # s1_index = s1_mask.sum(axis=0).argsort() 
+        # s2_index = s2_mask.sum(axis=0).argsort() 
+        # t1_index = t1_mask.sum(axis=0).argsort()        
+
         return (
             s1, s1_mask, s1_max_len, 
             s2, s2_mask, s2_max_len, 

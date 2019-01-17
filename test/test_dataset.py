@@ -65,5 +65,5 @@ def test_pairs_dataset():
 
 
 # test_prepare_data()
-# test_triplet_dataset()
-test_pairs_dataset()
+test_triplet_dataset()
+# test_pairs_dataset()

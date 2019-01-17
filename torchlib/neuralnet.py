@@ -612,11 +612,11 @@ class NeuralNetNLP(NeuralNetAbstractNLP):
         self.encoder = None            
 
         #if embedding is None:
-        self.embedding = nn.Embedding( 74666, 300 ) 
+        #   self.embedding = nn.Embedding( 74666, 300 ) 
         #elif isinstance(data, torch.Tensor):
         #   self.embedding = embedding
         #else:   
-        #   self.embedding = nn.Embedding.from_pretrained( torch.from_numpy( embedding ).float(),  freeze=False )
+        self.embedding = nn.Embedding.from_pretrained( torch.from_numpy( embedding ).float(),  freeze=False )
         
         kw = {'embedding': self.embedding, 'pretrained': pretrained}
         self.encoder = netmodels.__dict__[arch](**kw)        

@@ -62,6 +62,9 @@ class EncoderRNN(nn.Module):
     def forward(self, input_seq, input_mask, hidden=None):        
         # Calculate length
         input_lengths = input_mask.sum(dim=0) + 1
+        input_lengths, ind = torch.sort(input_lengths, descending=True  )
+        input_seq = input_seq[ :,  ind ]
+
         # Convert word indexes to embeddings
         embedded = self.embedding(input_seq)
         # Pack padded batch of sequences for RNN module
@@ -71,11 +74,9 @@ class EncoderRNN(nn.Module):
         # Unpack padding
         outputs, _ = torch.nn.utils.rnn.pad_packed_sequence(outputs)
         # Sum bidirectional GRU outputs
-        outputs = outputs[:, :, :self.hidden_size] + outputs[:, : ,self.hidden_size:]
+        #outputs = outputs[:, :, :self.hidden_size] + outputs[:, : ,self.hidden_size:]
         outputs = self.avg( outputs, input_mask )
-
-        print('DONE!!!')
-        assert(False)
+        outputs[ ind, : ] = outputs
 
         return outputs
 
