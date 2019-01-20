@@ -59,7 +59,7 @@ class NeuralNetAbstractNLP(object):
 
         # Set the graphic visualization
         self.plotter = None
-        self.plotter = gph.VisdomLinePlotter(env_name=self.nameproject)
+        #self.plotter = gph.VisdomLinePlotter(env_name=self.nameproject)
 
         
         # initialization var
@@ -126,7 +126,7 @@ class NeuralNetAbstractNLP(object):
             os.makedirs(self.pathmodels)
 
         # Set the graphic visualization
-        #self.plotter = gph.VisdomLinePlotter(env_name=self.nameproject)
+        self.plotter = gph.VisdomLinePlotter(env_name=self.nameproject)
                         
         self._create_model( arch, voc, pretrained, **cfg_model )
         self._create_loss( loss, **cfg_loss )

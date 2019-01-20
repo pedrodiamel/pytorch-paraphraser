@@ -75,7 +75,6 @@ class Logger(object):
     def update(self, loss, metrics, n):        
         for k,v in loss.items(): self.info['loss'][k].update( v, n )
         for k,v in metrics.items(): self.info['metrics'][k].update( v, n )
-
     
     def reset( self ):
         for t,k,v in self._get():

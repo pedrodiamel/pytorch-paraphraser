@@ -17,7 +17,7 @@ ARCH='nmt' #
 LOSS='maskll'
 OPT='adam'
 SCHEDULER='step'
-SNAPSHOT=20
+SNAPSHOT=50
 EXP_NAME='nlp_'$ARCH'_'$LOSS'_'$OPT'_'$NAMEDATASET'_003'
 
 

@@ -13,7 +13,7 @@ import torch.backends.cudnn as cudnn
 
 # LOCAL MODULE
 from torchlib.datasets.dataset  import TxtNMTDataset
-from torchlib.neuralnet import NeuralNetNMT
+from torchlib.nmtneuralnet import NeuralNetNMT
 
 from argparse import ArgumentParser
 import datetime
@@ -85,7 +85,16 @@ def main():
     parser = arg_parser();
     args = parser.parse_args();
     random.seed( args.seed )
+    
+    attn_model='dot'
+    hidden_size=300
+    encoder_n_layers=2 
+    decoder_n_layers=2
+    dropout=0.1
+    teacher_forcing_ratio=1.0
+
     cudnn.benchmark = True
+
     
     print('Baseline nlp paragrap paraphrase {}!!!'.format(datetime.datetime.now()))
     print('\nArgs:')
@@ -101,13 +110,11 @@ def main():
         nbatch=args.nbatch,
         batch_size=args.batch_size
     )
-        
-        
+            
     print('Load datset')
     print( len(dataset) )
     #print('Train: ', len(train_data))
     #print('Val: ', len(val_data))
-
 
     network = NeuralNetNMT(
         patchproject=args.project,
@@ -128,13 +135,14 @@ def main():
         optimizer=args.opt,
         lrsch=args.scheduler,
         pretrained=args.finetuning,
-        attn_model='dot', 
-        hidden_size=300, 
-        encoder_n_layers=2, 
-        decoder_n_layers=2,
-        dropout=0.1,
-        )    
-    
+        attn_model=attn_model, 
+        hidden_size=hidden_size, 
+        encoder_n_layers=encoder_n_layers, 
+        decoder_n_layers=decoder_n_layers,
+        dropout=dropout,
+        teacher_forcing_ratio=teacher_forcing_ratio,
+        ) 
+        
     # resume model
     if args.resume:
         network.resume( os.path.join(network.pathmodels, args.resume ) )

@@ -184,7 +184,7 @@ class TxtNMTDataset( object ):
         self.nbatch = nbatch  
 
     def __len__(self):
-        return self.batch_size
+        return self.nbatch #self.batch_size*
 
     def __getitem__(self, i):
         pair = self.pairs[ i%len(self.pairs) ]

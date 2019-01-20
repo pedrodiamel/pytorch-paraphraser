@@ -4,19 +4,16 @@ import os
 import time
 import random 
 from tqdm import tqdm
-
 from nltk.translate.bleu_score import corpus_bleu, SmoothingFunction
-
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
 from .datasets import vocabulary as voc
-
-from . import models as netmodels
 from .models import attnet 
 
+from . import models as netmodels
 from . import graphic as gph
 from . import netlearningrate
 from . import utils
@@ -48,8 +45,7 @@ class NeuralNetNMT(NeuralNetAbstractNLP):
         ):
         super(NeuralNetNMT, self).__init__( patchproject, nameproject, no_cuda, parallel, seed, print_freq, gpu  )
 
-
-        # initialization var
+        # initialization
         self.encoder_lr = 0.0001
         self.decoder_lr = 0.0001
  
@@ -64,9 +60,7 @@ class NeuralNetNMT(NeuralNetAbstractNLP):
         self.encoder_lrscheduler = None
         self.decoder_lrscheduler = None
 
- 
-
- 
+  
     def create(self, 
         arch, 
         voc,
@@ -81,13 +75,15 @@ class NeuralNetNMT(NeuralNetAbstractNLP):
         hidden_size=300, 
         encoder_n_layers=2, 
         decoder_n_layers=2,
+        clip=50.0,
         dropout=0.1,
+        teacher_forcing_ratio=1.0,
         ):
         """
         Create
         Args:
             arch (string): architecture
-            embedded:
+            voc:
             loss (string):
             lr (float): learning rate
             momentum,
@@ -108,21 +104,20 @@ class NeuralNetNMT(NeuralNetAbstractNLP):
         }
                     
         super(NeuralNetNMT, self).create( 
-            arch, 
+            arch,
             voc,
-            loss, 
-            lr, 
-            optimizer, 
-            lrsch, 
-            pretrained, 
+            loss,
+            lr,
+            optimizer,
+            lrsch,
+            pretrained,
             cfg_opt=cfg_opt,
             cfg_scheduler=cfg_scheduler,
-            cfg_model=cfg_model, 
+            cfg_model=cfg_model,
         )
 
-
-        self.teacher_forcing_ratio = 1.0
-        self.clip = 50.0
+        self.teacher_forcing_ratio = teacher_forcing_ratio
+        self.clip = clip
         self.accuracy = netloss.Bleu()
 
         # Set the graphic visualization
@@ -183,7 +178,6 @@ class NeuralNetNMT(NeuralNetAbstractNLP):
                 loss += mask_loss
                 n_totals += nTotal
 
-
         return loss, n_totals
     
     def training(self, dataset, epoch=0):
@@ -203,7 +197,7 @@ class NeuralNetNMT(NeuralNetAbstractNLP):
             data_time.update(time.time() - end)
             # get data 
             inp, lengths, output, mask, max_target_len = batch
-            batch_size = inp.shape[1]
+            batch_size = inp.shape[1]             
 
             if self.cuda:
                 inp = inp.cuda()
@@ -251,6 +245,9 @@ class NeuralNetNMT(NeuralNetAbstractNLP):
                 self.logger_train.logger( epoch, epoch + float(i+1)/len(dataset), i, len(dataset), batch_time,   )
 
 
+
+
+
     def evaluate(self, dataset, epoch=0):
         
         self.logger_val.reset()
@@ -293,7 +290,7 @@ class NeuralNetNMT(NeuralNetAbstractNLP):
                 
                 all_hyp_words = []
                 all_ref_words = []
-                for j in range(batch_size): 
+                for j in range( batch_size ): 
                     tokens_hyp = tokens_batch[:,j]
                     tokens_ref = output[:,j]
                     
@@ -311,7 +308,6 @@ class NeuralNetNMT(NeuralNetAbstractNLP):
 
                 blue = corpus_bleu(all_ref_words, all_hyp_words) 
 
-
                 # measure elapsed time
                 batch_time.update(time.time() - end)
                 end = time.time()
@@ -326,7 +322,7 @@ class NeuralNetNMT(NeuralNetAbstractNLP):
                 if i % self.print_freq == 0:                    
 
                     self.logger_val.logger(
-                        epoch, epoch, i,len(dataset), 
+                        epoch, epoch, i,len( dataset ), 
                         batch_time, 
                         bplotter=False,
                         bavg=True, 
@@ -351,21 +347,28 @@ class NeuralNetNMT(NeuralNetAbstractNLP):
     def _create_model(self, arch, voc, pretrained, attn_model, hidden_size, encoder_n_layers, decoder_n_layers, dropout):
         """
         Create model
-            @arch (string): select architecture
-            @voc:
-            @pretrained (bool)
+            arch (string): select architecture
+            voc:
+            pretrained (bool)
+            attn_model 
+            hidden_size 
+            encoder_n_layers 
+            decoder_n_layers 
+            dropout
         """    
 
         self.net = None
-        self.encoder = None            
+        self.encoder = None 
+        self.decoder = None           
+        self.voc = voc
+        self.s_arch = arch
 
         #if embedding is None:
-        self.voc = voc
-        self.embedding = nn.Embedding( voc.n_words, hidden_size ) 
+        self.embedding = nn.Embedding( voc.n_words, hidden_size )         
         #elif isinstance(data, torch.Tensor):
         #   self.embedding = embedding
         #else:   
-        #self.embedding = nn.Embedding.from_pretrained( torch.from_numpy( voc.embeddings ).float(),  freeze=False )        
+        #self.embedding = nn.Embedding.from_pretrained( torch.from_numpy( voc.embeddings ).float(),  freeze=False )       
         
         #kw = {'embedding': self.embedding, 'pretrained': pretrained}
         #self.encoder = netmodels.__dict__[arch](**kw)        
@@ -373,13 +376,13 @@ class NeuralNetNMT(NeuralNetAbstractNLP):
         self.encoder   = attnet.EncoderRNN( hidden_size, self.embedding, encoder_n_layers, dropout )
         self.decoder   = attnet.LuongAttnDecoderRNN( attn_model, self.embedding, hidden_size, voc.n_words, decoder_n_layers, dropout )
         self.search    = attnet.GreedySearchDecoder( self.encoder, self.decoder, sos=voc.SOS_token, cuda=self.cuda )
-        
-        self.s_arch = arch
-
+                
         if self.cuda == True:
-            self.net.cuda()
+            self.encoder.cuda()
+            self.decoder.cuda()
         if self.parallel == True and self.cuda == True:
-            self.net = nn.DataParallel(self.net, device_ids=range( torch.cuda.device_count() ))
+            self.encoder = nn.DataParallel(self.encoder, device_ids=range( torch.cuda.device_count() ))
+            self.decoder = nn.DataParallel(self.decoder, device_ids=range( torch.cuda.device_count() ))
 
 
     def _create_loss(self, loss):
@@ -390,7 +393,6 @@ class NeuralNetNMT(NeuralNetAbstractNLP):
         else:
             assert(False)
         self.s_loss = loss
-
 
     def _create_optimizer(self, optimizer='adam', lr=0.0001, **kwargs ):
         """
@@ -426,10 +428,7 @@ class NeuralNetNMT(NeuralNetAbstractNLP):
 
         self.encoder_lr = lr
         self.decoder_lr = lr*learning_rate
-
         self.s_optimizer = optimizer
-
-
 
     def _create_scheduler_lr(self, lrsch, **kwargs ):
         
@@ -442,8 +441,8 @@ class NeuralNetNMT(NeuralNetAbstractNLP):
         if lrsch == 'fixed':
             pass           
         elif lrsch == 'step':
-            self.encoder_lrscheduler = torch.optim.lr_scheduler.StepLR(self.encoder_optimizer, **kwargs )# step_size=3, gamma=0.1 
-            self.decoder_lrscheduler = torch.optim.lr_scheduler.StepLR(self.decoder_optimizer, **kwargs )# step_size=3, gamma=0.1 
+            self.encoder_lrscheduler = torch.optim.lr_scheduler.StepLR(self.encoder_optimizer, **kwargs ) # step_size=3, gamma=0.1 
+            self.decoder_lrscheduler = torch.optim.lr_scheduler.StepLR(self.decoder_optimizer, **kwargs ) # step_size=3, gamma=0.1 
         elif lrsch == 'cyclic': 
             self.encoder_lrscheduler = netlearningrate.CyclicLR(self.encoder_optimizer, **kwargs)
             self.decoder_lrscheduler = netlearningrate.CyclicLR(self.decoder_optimizer, **kwargs)            
@@ -455,7 +454,6 @@ class NeuralNetNMT(NeuralNetAbstractNLP):
             self.decoder_lrscheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.decoder_optimizer, **kwargs ) # 'min', patience=10
         else:
             assert(False)
-
         self.s_lerning_rate_sch = lrsch
 
     def adjust_learning_rate(self, epoch ):
@@ -485,13 +483,14 @@ class NeuralNetNMT(NeuralNetAbstractNLP):
         self.plotter.plot('lr', 'enc learning rate', epoch, lr_encoder )
         self.plotter.plot('lr', 'dec learning rate', epoch, lr_decoder )
  
-
-
     def resume(self, resume):
         """
         Resume: optionally resume from a checkpoint
         """ 
-        net = self.net.module if self.parallel else self.net
+        #net = self.net.module if self.parallel else self.net
+        encoder = self.encoder.module if self.parallel else self.encoder
+        decoder = self.decoder.module if self.parallel else self.decoder
+
         start_epoch = 0
         prec = 0
         if resume:
@@ -500,12 +499,13 @@ class NeuralNetNMT(NeuralNetAbstractNLP):
                 checkpoint = torch.load(resume)
                 start_epoch = checkpoint['epoch']
                 prec = checkpoint['prec']
-                net.load_state_dict(checkpoint['state_dict'])
-                self.encoder_optimizer.load_state_dict(checkpoint['encoder_optimizer'])
-                self.decoder_optimizer.load_state_dict(checkpoint['decoder_optimizer'])
-
-                #self.vocabolary.__dict__ =  checkpoint['vocabolary']     
-                self.embedding.load_state_dict( checkpoint['embedding'] ) 
+                #net.load_state_dict(checkpoint['state_dict'])
+                encoder.load_state_dict(checkpoint['en'])
+                encoder.load_state_dict(checkpoint['de'])
+                self.encoder_optimizer.load_state_dict(checkpoint['en_optimizer'])
+                self.decoder_optimizer.load_state_dict(checkpoint['de_optimizer'])
+                #self.voc =  checkpoint['vocabolary']     
+                self.embedding = encoder.embedding
 
                 print("=> loaded checkpoint '{}' (epoch {})"
                     .format(resume, checkpoint['epoch']))
@@ -519,17 +519,21 @@ class NeuralNetNMT(NeuralNetAbstractNLP):
         Save model
         """
         print('>> save model epoch {} ({}) in {}'.format(epoch, prec, filename))
-        net = self.net.module if self.parallel else self.net
+        #net = self.net.module if self.parallel else self.net
+        encoder = self.encoder.module if self.parallel else self.encoder
+        decoder = self.decoder.module if self.parallel else self.decoder
         utils.save_checkpoint(
             {
                 'epoch': epoch + 1,
                 'arch': self.s_arch,
-                'state_dict': net.state_dict(),                
                 'prec': prec,
-                'encoder_optimizer' : self.encoder_optimizer.state_dict(),
-                'decoder_optimizer' : self.decoder_optimizer.state_dict(),
-                #'vocabolary': self.vocabolary.__dict__,
-                'embedding': self.embedding.state_dict()
+                #'state_dict': net.state_dict(),  
+                'en': self.encoder.state_dict(),
+                'de': self.decoder.state_dict(),
+                'en_optimizer' : self.encoder_optimizer.state_dict(),
+                'de_optimizer' : self.decoder_optimizer.state_dict(),
+                #'vocabolary': self.voc,
+                #'embedding': self.embedding.state_dict()
 
             }, 
             is_best,
@@ -537,22 +541,34 @@ class NeuralNetNMT(NeuralNetAbstractNLP):
             filename,
             )
    
-    def load(self, pathnamemodel):
+    def load(self, pathnamemodel, voc):
         bload = False
         if pathnamemodel:
             if os.path.isfile(pathnamemodel):
                 print("=> loading checkpoint '{}'".format(pathnamemodel))
-                checkpoint = torch.load( pathnamemodel ) if self.cuda else torch.load( pathnamemodel, map_location=lambda storage, loc: storage )
+                checkpoint = torch.load( pathnamemodel ) if self.cuda else torch.load( pathnamemodel, map_location=lambda storage, loc: storage )                
                 
-                self._create_model( checkpoint['arch'], None, False )
-                self.embedding.load_state_dict( checkpoint['embedding'] )
-                self.net.load_state_dict( checkpoint['state_dict'] )   
-                #self.vocabolary.__dict__ =  checkpoint['vocabolary']     
-                
+                self.voc = voc
+                self.s_arch = checkpoint['arch']
+                #self.voc = checkpoint['vocabolary']
+                self.encoder.__dict__ = checkpoint['ec']
+                self.decoder.__dict__ = checkpoint['de']
+                self.search = attnet.GreedySearchDecoder( self.encoder, self.decoder, sos=self.voc.SOS_token, cuda=self.cuda )
+                self.embedding = self.encoder.embedding
+
+                if self.cuda == True:
+                    self.encoder.cuda()
+                    self.decoder.cuda()
+                if self.parallel == True and self.cuda == True:
+                    self.encoder = nn.DataParallel( self.encoder, device_ids=range( torch.cuda.device_count() ))
+                    self.decoder = nn.DataParallel( self.decoder, device_ids=range( torch.cuda.device_count() ))
+
                 print("=> loaded checkpoint for {} arch!".format(checkpoint['arch']))
                 bload = True
+
             else:
-                print("=> no checkpoint found at '{}'".format(pathnamemodel))        
+                print("=> no checkpoint found at '{}'".format(pathnamemodel))   
+
         return bload
 
 

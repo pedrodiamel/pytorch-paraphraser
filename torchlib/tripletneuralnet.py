@@ -274,8 +274,7 @@ class NeuralNetTripletNLP(NeuralNetAbstractNLP):
         
         kw = {'embedding': embedding, 'pretrained': pretrained}
         self.encoder = netmodels.__dict__[arch](**kw)        
-        self.net = netmodels.Tripletnet( self.encoder )
-        
+        self.net = netmodels.Tripletnet( self.encoder )        
         self.s_arch = arch
 
         if self.cuda == True:
