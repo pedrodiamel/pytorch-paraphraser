@@ -5,20 +5,20 @@ DATA='../rec/data/para-nmt-50m-small.txt'
 VOCPATH='../rec/data/ngram-word-concat-40.pickle'
 NAMEDATASET='txt'
 PROJECT='../out/netruns'
-EPOCHS=40
-NBATCH=100
-BATCHSIZE=10 #128
+EPOCHS=300
+NBATCH=500
+BATCHSIZE=64 #128
 LEARNING_RATE=0.0001
 MOMENTUM=0.9
-PRINT_FREQ=10
+PRINT_FREQ=50
 RESUME='chk000000.pth.tar'
 GPU=1
-ARCH='nmt' #
-LOSS='maskll'
+ARCH='encoder_rnn_avg' #encoder_ave, encoder_rnn
+LOSS='tripletloss'
 OPT='adam'
 SCHEDULER='step'
-SNAPSHOT=20
-EXP_NAME='nlp_'$ARCH'_'$LOSS'_'$OPT'_'$NAMEDATASET'_003'
+SNAPSHOT=50
+EXP_NAME='nlp_'$ARCH'_'$LOSS'_'$OPT'_'$NAMEDATASET'_002'
 
 
 rm -rf $PROJECT/$EXP_NAME/$EXP_NAME.log
@@ -28,7 +28,7 @@ mkdir $PROJECT/$EXP_NAME
 
 
 ## execute
-python ../train.py \
+python ../train_triplet.py \
 $DATA \
 --project=$PROJECT \
 --vocabulary=$VOCPATH \

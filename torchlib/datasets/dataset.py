@@ -80,7 +80,6 @@ class TxtTripletDataset( object ):
             s2_batch.append(triple[1])
             t1_batch.append(triple[2])  
        
-
         s1, s1_mask, s1_max_len = outputVar(s1_batch, self.voc)
         s2, s2_mask, s2_max_len = outputVar(s2_batch, self.voc)
         t1, t1_mask, t1_max_len = outputVar(t1_batch, self.voc)    
@@ -154,4 +153,65 @@ class TxtPairDataset( object ):
         return (
             s1, s1_mask, s1_max_len, 
             s2, s2_mask, s2_max_len, 
+            )
+
+
+
+class TxtNMTDataset( object ):
+    '''TxtNMTDataset
+    Args:
+        pathname
+        pathvocabulary
+        nbatch
+        batch_size
+    '''
+
+    def __init__(self, 
+        pathname, 
+        pathvocabulary, 
+        nbatch=100, 
+        batch_size=None 
+        ):
+        self.pathname = pathname
+        self.pathvocabulary = pathvocabulary
+              
+        #create dataset
+        voc, pairs = prepare_data( pathname, pathvocabulary )
+        self.voc = voc
+        self.pairs = pairs
+
+        self.batch_size = batch_size if batch_size else len(pairs)
+        self.nbatch = nbatch  
+
+    def __len__(self):
+        return self.batch_size
+
+    def __getitem__(self, i):
+        pair = self.pairs[ i%len(self.pairs) ]
+        inp, lengths = inputVar([pair[0]], self.voc)
+        output, mask, max_target_len = outputVar([pair[1]], self.voc)
+        return (
+            inp, lengths,  
+            output, mask, max_target_len, 
+            )       
+
+    def getbatch(self):
+        return self.batch2TrainData( [random.choice(self.pairs) for _ in range(self.batch_size)]  )
+
+    def getbatchs(self):
+        for _ in range( self.nbatch ):
+            yield self.getbatch()
+
+    # Returns all items for a given batch of triplet
+    def batch2TrainData(self, pair_batch):  
+        pair_batch.sort(key=lambda x: len(x[0].split(" ")), reverse=True)        
+        in_batch, out_batch = [], []
+        for pair in pair_batch :
+            in_batch.append(pair[0])
+            out_batch.append(pair[1])                    
+        inp, lengths = inputVar(in_batch, self.voc)
+        output, mask, max_target_len = outputVar(out_batch, self.voc)
+        return (
+            inp, lengths, 
+            output, mask, max_target_len, 
             )

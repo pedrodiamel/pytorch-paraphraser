@@ -51,8 +51,6 @@ class Vocabulary:
 
 
 
-
-
 def indexesFromSentence(voc, sentence):
     return [voc.word2index.get(word, voc.UNK_token )  for word in sentence.split(' ')] + [ voc.EOS_token ]
 
@@ -74,7 +72,7 @@ def binaryMatrix(l, value):
 def inputVar(l, voc):
     indexes_batch = [indexesFromSentence(voc, sentence) for sentence in l]
     lengths = torch.tensor([len(indexes) for indexes in indexes_batch])
-    padList = zeroPadding(indexes_batch, voc.EOS_token)
+    padList = zeroPadding(indexes_batch, voc.PAD_token)
     padVar = torch.LongTensor(padList)
     return padVar, lengths
 
@@ -82,8 +80,8 @@ def inputVar(l, voc):
 def outputVar(l, voc):
     indexes_batch = [indexesFromSentence(voc, sentence) for sentence in l]
     max_target_len = max([len(indexes) for indexes in indexes_batch])
-    padList = zeroPadding(indexes_batch, voc.EOS_token)
-    mask = binaryMatrix(padList, voc.EOS_token)
+    padList = zeroPadding(indexes_batch, voc.PAD_token)
+    mask = binaryMatrix(padList, voc.PAD_token)
     mask = torch.ByteTensor(mask)
     padVar = torch.LongTensor(padList)
     return padVar, mask, max_target_len

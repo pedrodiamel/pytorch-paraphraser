@@ -12,8 +12,8 @@ from torch.utils.data.sampler import SubsetRandomSampler
 import torch.backends.cudnn as cudnn
 
 # LOCAL MODULE
-from torchlib.datasets.dataset  import TxtNMTDataset
-from torchlib.neuralnet import NeuralNetNMT
+from torchlib.datasets.dataset  import TxtTripletDataset
+from torchlib.tripletneuralnet import NeuralNetTripletNLP
 
 from argparse import ArgumentParser
 import datetime
@@ -95,7 +95,7 @@ def main():
     
     # datasets
     # training dataset
-    dataset = TxtNMTDataset(
+    dataset = TxtTripletDataset(
         pathname=args.data,  
         pathvocabulary=args.vocabulary,
         nbatch=args.nbatch,
@@ -109,7 +109,7 @@ def main():
     #print('Val: ', len(val_data))
 
 
-    network = NeuralNetNMT(
+    network = NeuralNetTripletNLP(
         patchproject=args.project,
         nameproject=args.name,
         no_cuda=args.no_cuda,
@@ -128,11 +128,6 @@ def main():
         optimizer=args.opt,
         lrsch=args.scheduler,
         pretrained=args.finetuning,
-        attn_model='dot', 
-        hidden_size=300, 
-        encoder_n_layers=2, 
-        decoder_n_layers=2,
-        dropout=0.1,
         )    
     
     # resume model

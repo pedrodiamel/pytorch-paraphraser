@@ -16,7 +16,8 @@ def load_sentence_embeddings( pathname ):
         trigram_embeddings, word_embeddings, _ = x
         trigram_to_id, word_to_id = x[2]            
         word_to_id['<START>'] = word_vocab_size
-        word_to_id['<END>']   = word_vocab_size + 1                                
+        word_to_id['<END>']   = word_vocab_size + 1  
+                                      
         idx_to_word = { idx: word for word, idx in iteritems(word_to_id) }
         word_embeddings = np.vstack((word_embeddings, np.random.randn(2, embedding_size)))
         word_to_count = { word: 1 for word, idx in iteritems(word_to_id) }
@@ -26,7 +27,7 @@ def load_sentence_embeddings( pathname ):
             'index2word': idx_to_word,
             'word2count': word_to_count,
             'embeddings': word_embeddings,
-            'n_words':    len(word_to_id),        
+            'n_words':    len(word_embeddings),        
             'PAD_token':  word_to_id['★'],        # Used for padding short sentences
             'SOS_token':  word_to_id['<START>'],  # Start-of-sentence token
             'EOS_token':  word_to_id['<END>'],    # End-of-sentence token

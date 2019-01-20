@@ -4,7 +4,7 @@ import torch.nn as nn
 from torch import optim
 import torch.nn.functional as F
 
-__all__ = ['Tripletnet', 'EncoderAvg', 'EncoderRNN', 'encoder_ave', 'encoder_rnn']
+__all__ = ['Tripletnet', 'EncoderAvg', 'EncoderRNNAvg', 'encoder_ave', 'encoder_rnn_avg']
     
 class Tripletnet(nn.Module):
     def __init__(self, embeddingnet):
@@ -45,39 +45,35 @@ class EncoderAvg(nn.Module):
         embedded = self.embedding(input_seq) 
         outputs = self.avg( embedded, input_mask )
         return outputs
-
   
-class EncoderRNN(nn.Module):
+class EncoderRNNAvg(nn.Module):
     def __init__(self, hidden_size, embedding, n_layers=1, dropout=0, tonorm=True):
-        super(EncoderRNN, self).__init__()
+        super(EncoderRNNAvg, self).__init__()
         self.n_layers = n_layers
         self.hidden_size = hidden_size
         self.embedding = embedding
         # Initialize GRU; the input_size and hidden_size params are both set to 'hidden_size'
         #   because our input size is a word embedding with number of features == hidden_size
-        self.gru = nn.GRU(hidden_size, hidden_size, n_layers,
-                          dropout=(0 if n_layers == 1 else dropout), bidirectional=True)
+        self.gru = nn.GRU(hidden_size, hidden_size, n_layers, dropout=(0 if n_layers == 1 else dropout), bidirectional=True)
         self.avg = WieghtAverage( tonorm )
 
     def forward(self, input_seq, input_mask, hidden=None):        
         # Calculate length
-        input_lengths = input_mask.sum(dim=0) + 1
+        input_lengths = input_mask.sum(dim=0) #+ 1
         input_lengths, ind = torch.sort(input_lengths, descending=True  )
-        input_seq = input_seq[ :,  ind ]
-
+        input_seq = input_seq[ :,  ind ]     
         # Convert word indexes to embeddings
-        embedded = self.embedding(input_seq)
+        embedded = self.embedding( input_seq )
         # Pack padded batch of sequences for RNN module
-        packed = torch.nn.utils.rnn.pack_padded_sequence(embedded, input_lengths)
+        packed = torch.nn.utils.rnn.pack_padded_sequence( embedded, input_lengths )
         # Forward pass through GRU
-        outputs, hidden = self.gru(packed, hidden)
+        outputs, hidden = self.gru( packed, hidden )
         # Unpack padding
         outputs, _ = torch.nn.utils.rnn.pad_packed_sequence(outputs)
         # Sum bidirectional GRU outputs
         #outputs = outputs[:, :, :self.hidden_size] + outputs[:, : ,self.hidden_size:]
+        outputs[ :, ind, : ] = outputs
         outputs = self.avg( outputs, input_mask )
-        outputs[ ind, : ] = outputs
-
         return outputs
 
 
@@ -88,9 +84,9 @@ def encoder_ave(pretrained=False, **kwargs):
         pass
     return model
 
-def encoder_rnn(pretrained=False, **kwargs):
+def encoder_rnn_avg(pretrained=False, **kwargs):
     """RNN"""
-    model = EncoderRNN(hidden_size=300, n_layers=2, **kwargs)
+    model = EncoderRNNAvg(hidden_size=300, n_layers=2, **kwargs) 
     if pretrained:
         pass
     return model

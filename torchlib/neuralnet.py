@@ -9,9 +9,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from .datasets import vocabulary as voc
-
-from . import models as netmodels
 from . import graphic as gph
 from . import netlearningrate
 from . import utils
@@ -76,8 +73,7 @@ class NeuralNetAbstractNLP(object):
         self.s_loss = ''
 
         self.net = None
-        self.encoder=None
-        self.embedding=None
+        self.voc=None
         self.criterion = None
         self.optimizer = None
         self.lrscheduler = None
@@ -85,7 +81,7 @@ class NeuralNetAbstractNLP(object):
 
     def create(self, 
         arch,
-        embedded, 
+        voc, 
         loss, 
         lr, 
         optimizer, 
@@ -100,6 +96,7 @@ class NeuralNetAbstractNLP(object):
         Create 
         Args:
             @arch (string): architecture
+            @voc
             @loss (string):
             @lr (float): learning rate
             @optimizer (string) : 
@@ -131,12 +128,10 @@ class NeuralNetAbstractNLP(object):
         # Set the graphic visualization
         #self.plotter = gph.VisdomLinePlotter(env_name=self.nameproject)
                         
-        self._create_model( arch, embedded, pretrained, **cfg_model )
+        self._create_model( arch, voc, pretrained, **cfg_model )
         self._create_loss( loss, **cfg_loss )
         self._create_optimizer( optimizer, lr, **cfg_opt )
         self._create_scheduler_lr( lrsch, **cfg_scheduler )
-
-        
 
     def training(self, data_loader, epoch=0):
         pass
@@ -196,12 +191,12 @@ class NeuralNetAbstractNLP(object):
     def _to_end_epoch(self, epoch, epochs, train_loader, val_loader, **kwargs):
         pass
 
-    def _create_model(self, arch, embedded, pretrained):
+    def _create_model(self, arch, voc, pretrained):
         """
         Create model
         Args:
             @arch (string): select architecture
-            @embedded
+            @voc
             @pretrained (bool)
         """    
         pass
@@ -282,30 +277,6 @@ class NeuralNetAbstractNLP(object):
         # draw
         self.plotter.plot('lr', 'learning rate', epoch, lr )
  
-    def resume(self, resume):
-        """
-        Resume: optionally resume from a checkpoint
-        """ 
-        net = self.net.module if self.parallel else self.net
-        start_epoch = 0
-        prec = 0
-        if resume:
-            if os.path.isfile(resume):
-                print("=> loading checkpoint '{}'".format(resume))
-                checkpoint = torch.load(resume)
-                start_epoch = checkpoint['epoch']
-                prec = checkpoint['prec']
-                net.load_state_dict(checkpoint['state_dict'])
-                self.optimizer.load_state_dict(checkpoint['optimizer'])
-                #self.vocabolary.__dict__ =  checkpoint['vocabolary']     
-                self.embedding.load_state_dict( checkpoint['embedding'] ) 
-
-                print("=> loaded checkpoint '{}' (epoch {})"
-                    .format(resume, checkpoint['epoch']))
-            else:
-                print("=> no checkpoint found at '{}'".format(resume))
-        self.start_epoch = start_epoch
-        return start_epoch, prec
 
     def save(self, epoch, prec, is_best=False, filename='checkpoint.pth.tar'):
         """
@@ -320,28 +291,51 @@ class NeuralNetAbstractNLP(object):
                 'state_dict': net.state_dict(),
                 'prec': prec,
                 'optimizer' : self.optimizer.state_dict(),
-                #'vocabolary': self.vocabolary.__dict__,
-                'embedding': self.embedding.state_dict()
+                'vocabolary': self.voc.__dict__,
+                #'embedding': self.embedding.state_dict()
 
             }, 
             is_best,
             self.pathmodels,
             filename,
             )
+
+
+    def resume(self, resume):
+        """
+        Resume: optionally resume from a checkpoint
+        """ 
+        net = self.net.module if self.parallel else self.net
+        start_epoch = 0
+        prec = 0
+        if resume:
+            if os.path.isfile(resume):
+                print("=> loading checkpoint '{}'".format(resume))
+                checkpoint = torch.load(resume)
+                start_epoch = checkpoint['epoch']
+                prec = checkpoint['prec']
+                net.load_state_dict(checkpoint['state_dict'])
+
+                self.optimizer.load_state_dict(checkpoint['optimizer'])
+                self.voc.__dict__ =  checkpoint['vocabolary']                      
+
+                print("=> loaded checkpoint '{}' (epoch {})"
+                    .format(resume, checkpoint['epoch']))
+            else:
+                print("=> no checkpoint found at '{}'".format(resume))
+        self.start_epoch = start_epoch
+        return start_epoch, prec
    
     def load(self, pathnamemodel):
         bload = False
+        voc = None
         if pathnamemodel:
             if os.path.isfile(pathnamemodel):
                 print("=> loading checkpoint '{}'".format(pathnamemodel))
                 checkpoint = torch.load( pathnamemodel ) if self.cuda else torch.load( pathnamemodel, map_location=lambda storage, loc: storage )
-                                
-                self._create_model( checkpoint['arch'], None, False )
-
-                self.embedding.load_state_dict( checkpoint['embedding'] )
+                voc.__dict__ =  checkpoint['vocabolary']       
+                self._create_model( checkpoint['arch'], voc, False )                 
                 self.net.load_state_dict( checkpoint['state_dict'] )   
-                #self.vocabolary.__dict__ =  checkpoint['vocabolary']     
-                 
                 print("=> loaded checkpoint for {} arch!".format(checkpoint['arch']))
                 bload = True
             else:
@@ -364,281 +358,3 @@ class NeuralNetAbstractNLP(object):
                     self.net
                     )
                 )
-
-class NeuralNetNLP(NeuralNetAbstractNLP):
-    r"""Convolutional Neural Net for classification
-    Args:
-        patchproject (str): path project
-        nameproject (str):  name project
-        no_cuda (bool): system cuda (default is True)
-        parallel (bool)
-        seed (int)
-        print_freq (int)
-        gpu (int)
-    """
-
-    def __init__(self,
-        patchproject,
-        nameproject,
-        no_cuda=True,
-        parallel=False,
-        seed=1,
-        print_freq=10,
-        gpu=0
-        ):
-        super(NeuralNetNLP, self).__init__( patchproject, nameproject, no_cuda, parallel, seed, print_freq, gpu  )
-
- 
-    def create(self, 
-        arch, 
-        embedded,
-        loss, 
-        lr,          
-        optimizer, 
-        lrsch,  
-        momentum=0.9,
-        weight_decay=5e-4,        
-        pretrained=False,
-        ):
-        """
-        Create
-        Args:
-            arch (string): architecture
-            embedded:
-            loss (string):
-            lr (float): learning rate
-            momentum,
-            optimizer (string) : 
-            lrsch (string): scheduler learning rate
-            pretrained (bool)
-        """
-
-        cfg_opt= { 'momentum':0.9, 'weight_decay':5e-4 } 
-        cfg_scheduler= { 'step_size':30, 'gamma':0.1  }
-                    
-        super(NeuralNetNLP, self).create( 
-            arch, 
-            embedded,
-            loss, 
-            lr, 
-            optimizer, 
-            lrsch, 
-            pretrained, 
-            cfg_opt=cfg_opt,
-            cfg_scheduler=cfg_scheduler,
-        )
-        
-        self.accuracy = netloss.Accuracy( )
-
-        # Set the graphic visualization
-        self.logger_train = logger.Logger( 'Trn', ['loss'], ['acc'], self.plotter  )
-        self.logger_val   = logger.Logger( 'Val', ['loss'], ['acc'], self.plotter  )
-              
-
-    
-    def training(self, dataset, epoch=0):
-
-        self.logger_train.reset()
-        data_time = logger.AverageMeter()
-        batch_time = logger.AverageMeter()
-
-        # switch to evaluate mode
-        self.net.train()
-        end = time.time()
-        for i, batch in enumerate( dataset.getbatchs() ):
-            
-            # measure data loading time
-            data_time.update(time.time() - end)
-            # get data 
-            s1, s1_mask, s1_max_len, s2, s2_mask, s2_max_len, t1, t1_mask, t1_max_len = batch
-            batch_size = s1.shape[0]
-
-            if self.cuda:
-                s1 = s1.cuda(); s1_mask = s1_mask.cuda()
-                s2 = s2.cuda(); s2_mask = s2_mask.cuda()
-                t1 = t1.cuda(); t1_mask = t1_mask.cuda()
-            
-            # fit (forward)
-            emb_s1, emb_s2, emb_t1 = self.net( s1, s1_mask, s2, s2_mask, t1, t1_mask )
-
-            # measure accuracy and record loss
-            loss = self.criterion( emb_s1, emb_s2, emb_t1  )            
-            pred = self.accuracy( emb_s1, emb_s2, emb_t1  )
-              
-            # optimizer
-            self.optimizer.zero_grad()
-            loss.backward()
-
-            # Clip gradients: gradients are modified in place
-            #_ = torch.nn.utils.clip_grad_norm_(model.parameters(), clip)
-    
-            self.optimizer.step()
-                      
-            # update
-            self.logger_train.update(
-                {'loss': loss.data[0] },
-                {'acc': pred.data[0] },  
-                batch_size,
-                )
-            
-            # measure elapsed time
-            batch_time.update(time.time() - end)
-            end = time.time()
-
-            if i % self.print_freq == 0:  
-                self.logger_train.logger( epoch, epoch + float(i+1)/len(dataset), i, len(dataset), batch_time,   )
-    
-    def evaluate(self, dataset, epoch=0):
-        
-        self.logger_val.reset()
-        batch_time = logger.AverageMeter()        
-
-        # switch to evaluate mode
-        self.net.eval()
-        with torch.no_grad():
-            end = time.time()
-            for i, batch in enumerate( dataset.getbatchs() ):
-                
-                # get data (image, label)
-                s1, s1_mask, s1_max_len, s2, s2_mask, s2_max_len, t1, t1_mask, t1_max_len = batch
-                batch_size = s1.shape[0]
-
-                if self.cuda:
-                    s1 = s1.cuda(); s1_mask = s1_mask.cuda()
-                    s2 = s2.cuda(); s2_mask = s2_mask.cuda()
-                    t1 = t1.cuda(); t1_mask = t1_mask.cuda()
-                
-                # fit (forward)
-                emb_s1, emb_s2, emb_t1 = self.net( s1, s1_mask, s2, s2_mask, t1, t1_mask )
-
-                # measure accuracy and record loss
-                loss = self.criterion( emb_s1, emb_s2, emb_t1  )            
-                pred = self.accuracy( emb_s1, emb_s2, emb_t1  ) 
-
-                # measure elapsed time
-                batch_time.update(time.time() - end)
-                end = time.time()
-
-                # update
-                self.logger_val.update(
-                {'loss': loss.data[0] },
-                {'acc': pred.data[0] },
-                batch_size,
-                )
-
-                if i % self.print_freq == 0:
-                    self.logger_val.logger(
-                        epoch, epoch, i,len(dataset), 
-                        batch_time, 
-                        bplotter=False,
-                        bavg=True, 
-                        bsummary=False,
-                        )
-
-        #save validation loss
-        self.vallosses = self.logger_val.info['loss']['loss'].avg
-        acc = self.logger_val.info['metrics']['acc'].avg
-
-        self.logger_val.logger(
-            epoch, epoch, i, len(dataset), 
-            batch_time,
-            bplotter=True,
-            bavg=True, 
-            bsummary=True,
-            )
-                      
-        return acc
- 
-    def test(self, dataset):
-        k=0
-        P=[]        
-        # switch to evaluate mode
-        self.net.eval()
-        with torch.no_grad():
-            end = time.time()
-            for i, batch in enumerate( tqdm( dataset.getbatchs() ) ):
-                # get data
-                s1, s1_mask, s1_max_len, s2, s2_mask, s2_max_len = batch                             
-                if self.cuda:
-                    s1 = s1.cuda(); s1_mask = s1_mask.cuda()
-                    s2 = s2.cuda(); s2_mask = s2_mask.cuda()
-                # fit (forward)
-                s1_enc = self.encoder( s1, s1_mask )
-                s2_enc = self.encoder( s2, s2_mask )
-                p_enc = torch.stack( (s1_enc, s2_enc), dim=2 )
-                P.append( p_enc )
-        P = torch.cat( P, dim=0 )
-        return P
-
-    def predict(self, dataset):        
-        P_enc=[]; k=0      
-        # switch to evaluate mode
-        self.net.eval()
-        with torch.no_grad():
-            end = time.time()
-            for i, batch in enumerate( tqdm( dataset.getbatchs() ) ):
-                # get data
-                s1, s1_mask, s1_max_len, s2, s2_mask, s2_max_len = batch                             
-                if self.cuda:
-                    s1 = s1.cuda(); s1_mask = s1_mask.cuda()
-                    s2 = s2.cuda(); s2_mask = s2_mask.cuda()
-                # fit (forward)
-                s1_enc = self.encoder( s1, s1_mask )
-                s2_enc = self.encoder( s2, s2_mask )
-                p_enc = torch.stack( (s1_enc, s2_enc), dim=2 )
-                P_enc.append( p_enc )
-        P_enc = torch.cat( P_enc, dim=0 )
-        return P_enc
-
-    def __call__(self, x, x_mask):       
-        # switch to evaluate mode
-        self.net.eval()
-        with torch.no_grad():
-            if self.cuda:
-                x = x.cuda()
-                x_mask = x_mask.cuda() 
-            x_enc = self.encoder( x, x_mask )
-        return x_enc
-    
-    def _create_model(self, arch, embedding, pretrained):
-        """
-        Create model
-            @arch (string): select architecture
-            @embedding:
-            @pretrained (bool)
-        """    
-
-        self.net = None
-        self.encoder = None            
-
-        #if embedding is None:
-        #   self.embedding = nn.Embedding( 74666, 300 ) 
-        #elif isinstance(data, torch.Tensor):
-        #   self.embedding = embedding
-        #else:   
-        self.embedding = nn.Embedding.from_pretrained( torch.from_numpy( embedding ).float(),  freeze=False )
-        
-        kw = {'embedding': self.embedding, 'pretrained': pretrained}
-        self.encoder = netmodels.__dict__[arch](**kw)        
-        self.net = netmodels.Tripletnet( self.encoder )
-        
-        self.s_arch = arch
-
-        if self.cuda == True:
-            self.net.cuda()
-        if self.parallel == True and self.cuda == True:
-            self.net = nn.DataParallel(self.net, device_ids=range( torch.cuda.device_count() ))
-
-    def _create_loss(self, loss):
-
-        # create loss
-        if loss == 'tripletloss':
-            self.criterion = netloss.TripletCosineLoss().cuda()
-        else:
-            assert(False)
-        self.s_loss = loss
-
-
-
-
-

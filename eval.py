@@ -10,7 +10,7 @@ import torch
 import torch.nn.functional as F
 
 from torchlib.datasets.dataset  import TxtPairDataset
-from torchlib.neuralnet import NeuralNetNLP
+from torchlib.neuralnet import NeuralNetTripletNLP
 
 
 def random_query( SS1, SS2, SENC1, SENC2, nq=1, maxq=5 ):
@@ -67,7 +67,7 @@ def main():
 
     #neural net 
     #get model
-    network = NeuralNetNLP(
+    network = NeuralNetTripletNLP(
         patchproject=project,
         nameproject=name,
         no_cuda=no_cuda,
