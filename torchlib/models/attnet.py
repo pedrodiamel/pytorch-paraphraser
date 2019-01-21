@@ -123,18 +123,17 @@ class GreedySearchDecoder(nn.Module):
         self.cuda = cuda 
         self.sos = sos
 
-    def forward(self, input_seq, input_length, max_length, batch_size):
+    def forward(self, input_seq, input_length, max_length, batch_size=1):
         # Forward input through encoder model
         encoder_outputs, encoder_hidden = self.encoder(input_seq, input_length)
         # Prepare encoder's final hidden layer to be first hidden input to the decoder
         decoder_hidden = encoder_hidden[:self.decoder.n_layers]
         # Initialize decoder input with SOS_token
-        #decoder_input = torch.ones(1, 1, dtype=torch.long) * self.sos
         decoder_input = torch.LongTensor([[self.sos for _ in range(batch_size)]])
         # Initialize tensors to append decoded words to
         all_tokens = torch.zeros( 1, batch_size , dtype=torch.long)
         all_scores = torch.zeros( 1, batch_size )
-
+        
         if self.cuda:
             decoder_input = decoder_input.cuda()
             all_tokens = all_tokens.cuda()

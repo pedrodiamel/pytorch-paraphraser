@@ -3,6 +3,7 @@
 import os
 import time
 import random 
+import numpy as np
 from tqdm import tqdm
 from nltk.translate.bleu_score import corpus_bleu, SmoothingFunction
 
@@ -244,10 +245,6 @@ class NeuralNetNMT(NeuralNetAbstractNLP):
             if i % self.print_freq == 0:  
                 self.logger_train.logger( epoch, epoch + float(i+1)/len(dataset), i, len(dataset), batch_time,   )
 
-
-
-
-
     def evaluate(self, dataset, epoch=0):
         
         self.logger_val.reset()
@@ -271,7 +268,6 @@ class NeuralNetNMT(NeuralNetAbstractNLP):
                     output = output.cuda()
                     mask = mask.cuda()
                     max_target_len = max_target_len.cuda()
-
                 
                 # fit (forward)
                 loss, n_totals = self._forward( 
@@ -303,8 +299,8 @@ class NeuralNetNMT(NeuralNetAbstractNLP):
                     decoded_ref_words[:] = [x for x in decoded_ref_words if not (x == self.voc.EOS_token or x == self.voc.PAD_token)]
                     all_ref_words.append( decoded_ref_words )
 
-                #print( all_hyp_words[0] )
-                #print( all_ref_words[0] )
+                print( all_hyp_words[0] )
+                print( all_ref_words[0] )
 
                 blue = corpus_bleu(all_ref_words, all_hyp_words) 
 
@@ -343,8 +339,71 @@ class NeuralNetNMT(NeuralNetAbstractNLP):
                       
         return bleu
  
+    def test(self, dataset):
+        
+        bleus = []
 
-    def _create_model(self, arch, voc, pretrained, attn_model, hidden_size, encoder_n_layers, decoder_n_layers, dropout):
+        # switch to evaluate mode
+        self.encoder.eval()
+        self.decoder.eval()
+        
+        with torch.no_grad():
+            end = time.time()
+            for i, batch in enumerate( tqdm( dataset.getbatchs() ) ):
+                # get data
+                inp, lengths, output, mask, max_target_len = batch                            
+                batch_size = inp.shape[1]
+
+                if self.cuda:
+                    inp = inp.cuda()
+                    lengths = lengths.cuda()
+                    output = output.cuda()
+                    mask = mask.cuda()
+                    max_target_len = max_target_len.cuda()
+
+                # fit (forward)
+                tokens_batch, scores_batch = self.search( inp, lengths, max_target_len, batch_size )
+
+                all_hyp_words = []
+                all_ref_words = []
+                for j in range( batch_size ): 
+                    tokens_hyp = tokens_batch[:,j]
+                    tokens_ref = output[:,j]            
+                    
+                    decoded_hyp_words = [self.voc.index2word.get(token.item(), self.voc.index2word[ self.voc.UNK_token] ) for token in tokens_hyp] 
+                    decoded_hyp_words[:] = [x for x in decoded_hyp_words if not (x == self.voc.EOS_token or x == self.voc.PAD_token)]
+                    all_hyp_words.append( decoded_hyp_words )
+                    
+                    decoded_ref_words = [self.voc.index2word[ token.item() ] for token in tokens_ref]
+                    decoded_ref_words[:] = [x for x in decoded_ref_words if not (x == self.voc.EOS_token or x == self.voc.PAD_token)]
+                    
+                    all_ref_words.append( decoded_ref_words )
+
+                print( all_ref_words[0] )
+                print( all_hyp_words[0] )
+
+                bleu = corpus_bleu(all_ref_words, all_hyp_words) 
+                bleus.append(bleu)
+
+        bleu = np.stack( bleus, axis=-1 ).mean()
+        return  bleu
+
+
+    def __call__(self, x, lengths, max_target_len ):       
+        # switch to evaluate mode
+        self.encoder.eval()
+        self.decoder.eval()
+        with torch.no_grad():
+            if self.cuda:
+                x = x.cuda() 
+                lengths = lengths.cuda()
+                max_target_len = max_target_len.cuda()
+            batch_size = x.shape[1]
+            tokens_batch, scores_batch = self.search( x, lengths, max_target_len, batch_size )
+        return tokens_batch, scores_batch
+
+
+    def _create_model(self, arch, voc, pretrained, attn_model, hidden_size, encoder_n_layers, decoder_n_layers, dropout=0.1):
         """
         Create model
             arch (string): select architecture
@@ -362,6 +421,10 @@ class NeuralNetNMT(NeuralNetAbstractNLP):
         self.decoder = None           
         self.voc = voc
         self.s_arch = arch
+        self.attn_model = attn_model
+        self.hidden_size = hidden_size
+        self.encoder_n_layers = encoder_n_layers
+        self.decoder_n_layers = decoder_n_layers
 
         #if embedding is None:
         self.embedding = nn.Embedding( voc.n_words, hidden_size )         
@@ -383,7 +446,6 @@ class NeuralNetNMT(NeuralNetAbstractNLP):
         if self.parallel == True and self.cuda == True:
             self.encoder = nn.DataParallel(self.encoder, device_ids=range( torch.cuda.device_count() ))
             self.decoder = nn.DataParallel(self.decoder, device_ids=range( torch.cuda.device_count() ))
-
 
     def _create_loss(self, loss):
 
@@ -490,7 +552,6 @@ class NeuralNetNMT(NeuralNetAbstractNLP):
         #net = self.net.module if self.parallel else self.net
         encoder = self.encoder.module if self.parallel else self.encoder
         decoder = self.decoder.module if self.parallel else self.decoder
-
         start_epoch = 0
         prec = 0
         if resume:
@@ -499,12 +560,10 @@ class NeuralNetNMT(NeuralNetAbstractNLP):
                 checkpoint = torch.load(resume)
                 start_epoch = checkpoint['epoch']
                 prec = checkpoint['prec']
-                #net.load_state_dict(checkpoint['state_dict'])
                 encoder.load_state_dict(checkpoint['en'])
                 encoder.load_state_dict(checkpoint['de'])
                 self.encoder_optimizer.load_state_dict(checkpoint['en_optimizer'])
-                self.decoder_optimizer.load_state_dict(checkpoint['de_optimizer'])
-                #self.voc =  checkpoint['vocabolary']     
+                self.decoder_optimizer.load_state_dict(checkpoint['de_optimizer'])     
                 self.embedding = encoder.embedding
 
                 print("=> loaded checkpoint '{}' (epoch {})"
@@ -526,14 +585,15 @@ class NeuralNetNMT(NeuralNetAbstractNLP):
             {
                 'epoch': epoch + 1,
                 'arch': self.s_arch,
-                'prec': prec,
-                #'state_dict': net.state_dict(),  
+                'attn_model': self.attn_model,
+                'hidden_size': self.hidden_size,
+                'encoder_n_layers': self.encoder_n_layers,
+                'decoder_n_layers': self.decoder_n_layers,
+                'prec': prec,                   
                 'en': self.encoder.state_dict(),
                 'de': self.decoder.state_dict(),
                 'en_optimizer' : self.encoder_optimizer.state_dict(),
                 'de_optimizer' : self.decoder_optimizer.state_dict(),
-                #'vocabolary': self.voc,
-                #'embedding': self.embedding.state_dict()
 
             }, 
             is_best,
@@ -546,23 +606,19 @@ class NeuralNetNMT(NeuralNetAbstractNLP):
         if pathnamemodel:
             if os.path.isfile(pathnamemodel):
                 print("=> loading checkpoint '{}'".format(pathnamemodel))
-                checkpoint = torch.load( pathnamemodel ) if self.cuda else torch.load( pathnamemodel, map_location=lambda storage, loc: storage )                
-                
-                self.voc = voc
-                self.s_arch = checkpoint['arch']
-                #self.voc = checkpoint['vocabolary']
-                self.encoder.__dict__ = checkpoint['ec']
-                self.decoder.__dict__ = checkpoint['de']
-                self.search = attnet.GreedySearchDecoder( self.encoder, self.decoder, sos=self.voc.SOS_token, cuda=self.cuda )
+                checkpoint = torch.load( pathnamemodel ) if self.cuda else torch.load( pathnamemodel, map_location=lambda storage, loc: storage )
+                self._create_model( 
+                    checkpoint['arch'], 
+                    voc, 
+                    False, 
+                    checkpoint['attn_model'], 
+                    checkpoint['hidden_size'], 
+                    checkpoint['encoder_n_layers'], 
+                    checkpoint['decoder_n_layers'] 
+                    )                
+                self.encoder.load_state_dict( checkpoint['en'] )
+                self.decoder.load_state_dict( checkpoint['de'] )
                 self.embedding = self.encoder.embedding
-
-                if self.cuda == True:
-                    self.encoder.cuda()
-                    self.decoder.cuda()
-                if self.parallel == True and self.cuda == True:
-                    self.encoder = nn.DataParallel( self.encoder, device_ids=range( torch.cuda.device_count() ))
-                    self.decoder = nn.DataParallel( self.decoder, device_ids=range( torch.cuda.device_count() ))
-
                 print("=> loaded checkpoint for {} arch!".format(checkpoint['arch']))
                 bload = True
 
@@ -572,3 +628,20 @@ class NeuralNetNMT(NeuralNetAbstractNLP):
         return bload
 
 
+    def __str__(self): 
+        return str(
+                'Name: {} \n'
+                'arq: {} \n'
+                'loss: {} \n'
+                'optimizer: {} \n'
+                'lr: {} \n'
+                'Model: \n{} \n{} \n'.format(
+                    self.nameproject,
+                    self.s_arch,
+                    self.s_loss,
+                    self.s_optimizer,
+                    self.lr,
+                    self.encoder,
+                    self.decoder,
+                    )
+                )

@@ -1,2 +1,16 @@
 {
+    "editor.fontSize": 16,
+    // "python.linting.flake8Enabled": false,
+    // "python.condaPath": "/home/pdmf/anaconda3/bin",
+    // "python.formatting.provider": "autopep8",
+    // "python.unitTest.cwd": "test",
+    // "python.linting.flake8Args": [
+    //     "--ignore=F401,E402,F403,W503,W504",
+    //     "--max-line-length=120"      
+    // ],
+    // "python.linting.pylintArgs": [
+    //     "--disable=c0111, c0103"
+    // ],
+    "workbench.iconTheme": "eq-material-theme-icons",
+    "workbench.colorTheme": "Monokai Dimmed"
 }
