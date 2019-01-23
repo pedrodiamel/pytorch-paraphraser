@@ -69,8 +69,6 @@ def arg_parser():
                         help='Parallel')
     parser.add_argument('--name-dataset', default='txt', type=str,
                         help='name dataset')
-
-
     return parser
 
 

@@ -10,7 +10,7 @@ import torch.nn as nn
 
 from .utils import (normalizeString, filterPairs, read_paraphraser )
 from .vocabulary import (Vocabulary, inputVar, outputVar )
-from .downloads import download_extern_data
+from .downloads import download_data
 
 def prepare_data( pathdataset, pathvocabulary ):
     pairs = read_paraphraser( pathdataset )
@@ -41,13 +41,16 @@ class TxtDataset( object ):
         nbatch
         batch_size
     '''
+    
+    idfile = '1rbF3daJjCsa1-fu2GANeJd2FBXos1ugD'
+    namefile = 'para-nmt-50m-demo.zip'
 
     def __init__(self, 
         pathname, 
         filedataset,
         filevocabulary, 
         nbatch=100, 
-        batch_size=None 
+        batch_size=None
         ):
         self.pathname = pathname
         self.filevocabulary = filevocabulary
@@ -56,15 +59,14 @@ class TxtDataset( object ):
         self.pathdataset = os.path.join( pathname, filedataset )
 
         if not os.path.exists( pathname ):
-            download_extern_data( pathname )
-
+            download_data( self.namefile, self.idfile, self.pathname, ext=True )
+        
         #create dataset
         voc, pairs = prepare_data( self.pathdataset, self.pathvocabulary )
         self.voc = voc
         self.pairs = pairs
-
         self.batch_size = batch_size if batch_size else len(pairs)
-        self.nbatch = nbatch  
+        self.nbatch = nbatch
 
     def __len__(self):
         return self.nbatch #self.batch_size*

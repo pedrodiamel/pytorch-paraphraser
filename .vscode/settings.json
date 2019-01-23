@@ -12,5 +12,18 @@
     //     "--disable=c0111, c0103"
     // ],
     "workbench.iconTheme": "eq-material-theme-icons",
-    "workbench.colorTheme": "Monokai Dimmed"
+    "workbench.colorTheme": "Monokai Dimmed",
+    "python.unitTest.pyTestArgs": [
+        "test"
+    ],
+    "python.unitTest.unittestEnabled": true,
+    "python.unitTest.nosetestsEnabled": false,
+    "python.unitTest.pyTestEnabled": false,
+    "python.unitTest.unittestArgs": [
+        "-v",
+        "-s",
+        "./test",
+        "-p",
+        "test_*.py"
+    ]
 }

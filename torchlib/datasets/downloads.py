@@ -27,34 +27,32 @@ def save_response_content(response, destination):
                 f.write(chunk)
 
 def download(namefile, id, destination='.' ):
+
     if not os.path.exists( destination ):
         print('Path {} not exits, we are create ..'.format(destination) )
-        os.makedirs( destination )    
+        os.makedirs( destination )  
+
     print('Donwload file {}'.format(namefile) )
     download_file_from_google_drive(id,  os.path.join(destination, namefile ) )
 
-def extract(pathname):
+def extract(namefile, pathname):
     # extract file
     cwd = os.getcwd()
-    tar = tarfile.open( pathname, "r:gz")
+    tar = tarfile.open( os.path.join( pathname, namefile ) , "r:gz")
     os.chdir(pathname)
     tar.extractall()
     tar.close()
     os.chdir(cwd)  
 
 
-#download externs data
-def download_extern_data( destination ):
-    # destination = os.path.expanduser( '~/.datasets/txt' )
-    id = '1rbF3daJjCsa1-fu2GANeJd2FBXos1ugD'
-    namefile = 'para-nmt-50m.zip'    
+#download data
+def download_data( namefile, id, destination, ext=False ):  
     download( namefile, id, destination )
-    extract( os.path.join( destination, namefile ) )
-
-
-
+    if ext: 
+        extract( namefile, destination )
+    
 # TODO January 23, 2019: Download pretrain models
 #download models
 def download_model():
     pass
-   
+

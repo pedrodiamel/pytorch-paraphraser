@@ -1,96 +1,118 @@
-
+import unittest
+import os
 import sys
+
 sys.path.append('../')
-import pytest
 
 from torchlib.datasets import dataset
 
+class TestDataset( unittest.TestCase ):
 
-def test_prepare_data():
-    pathname = '../rec/data/para-nmt-50m-small.txt'
-    pathvocabulary = '../rec/data/ngram-word-concat-40.pickle'
-    voc, pairs = dataset.prepare_data( pathname, pathvocabulary )
+    def test_prepare( self ):
+        pathfile = '~/.datasets/txt/para-nmt-50m-demo/para-nmt-50m-small.txt'
+        pathvocabulary = '~/.datasets/txt/para-nmt-50m-demo/ngram-word-concat-40.pickle'
+        pathfile = os.path.expanduser(pathfile)
+        pathvocabulary = os.path.expanduser(pathvocabulary)
 
-    # print(random.choice(pairs))
-    print(len(pairs))
-    for pair in pairs[:10]:
-        print(pair)
+        print( pathfile )
+        print( pathvocabulary )
 
+        voc, pairs = dataset.prepare_data( pathfile, pathvocabulary )
 
-def test_triplet_dataset():
+        # print(random.choice(pairs))
+        print(len(pairs))
+        for pair in pairs[:10]:
+            print(pair)
 
-    pathname = '../rec/data/para-nmt-50m-small.txt'
-    pathvocabulary = '../rec/data/ngram-word-concat-40.pickle'
-    data = dataset.TxtTripletDataset( 
-        pathname,  
-        pathvocabulary,
-        nbatch=10,
-        batch_size=5,
-    )
-    
-    batches = data.getbatch()
-    s1, s1_mask, s1_max_len, s2, s2_mask, s2_max_len, t1, t1_mask, t1_max_len = batches
+        self.assertTrue( len(pairs) > 0 )
 
-    print("s1_variable:", s1)
-    print("lengths:", s1_max_len)
-    print("mask:", s1_mask)
-    print("s2_variable:", s2)
-    print("lengths:", s2_max_len)
-    print("mask:", s2_mask)
-    print("t1_variable:", t1)
-    print("lengths:", t1_max_len)
-    print("mask:", t1_mask)
+    def test_triplet(self):
 
+        pathname = '~/.datasets/txt'
+        pathfile = 'para-nmt-50m-demo/para-nmt-50m-small.txt'
+        pathvocabulary = 'para-nmt-50m-demo/ngram-word-concat-40.pickle'
+        nbatch = 5
+        batch_size = 10
 
-def test_pairs_dataset():
-    
-    pathname = '../rec/data/para-nmt-50m-small.txt'
-    pathvocabulary = '../rec/data/ngram-word-concat-40.pickle'
-    data = dataset.TxtPairDataset( 
-        pathname,  
-        pathvocabulary,
-        nbatch=10,
-        batch_size=5,
-    )
-    
-    batches = data.getbatch()
-    s1, s1_mask, s1_max_len, s2, s2_mask, s2_max_len = batches
+        pathname = os.path.expanduser(pathname)
+        pathfile = os.path.expanduser(pathfile)
+        pathvocabulary = os.path.expanduser(pathvocabulary)
 
-    print("s1_variable:", s1)
-    print("lengths:", s1_max_len)
-    print("mask:", s1_mask)
-    print("s2_variable:", s2)
-    print("lengths:", s2_max_len)
-    print("mask:", s2_mask)
+        data = dataset.TxtTripletDataset( 
+            pathname,  
+            pathfile,            
+            pathvocabulary,
+            nbatch=nbatch,
+            batch_size=batch_size,
+        )
+        
+        batches = data.getbatch()
+        s1, s1_mask, s1_max_len, s2, s2_mask, s2_max_len, t1, t1_mask, t1_max_len = batches
 
+        # print("s1_variable:", s1)
+        # print("lengths:", s1_max_len)
+        # print("mask:", s1_mask)
+        # print("s2_variable:", s2)
+        # print("lengths:", s2_max_len)
+        # print("mask:", s2_mask)
+        # print("t1_variable:", t1)
+        # print("lengths:", t1_max_len)
+        # print("mask:", t1_mask)
 
-def test_nmt_dataset():
-    
-    pathname = '../rec/data/para-nmt-50m-small.txt'
-    pathvocabulary = '../rec/data/ngram-word-concat-40.pickle'
-    data = dataset.TxtNMTDataset( 
-        pathname,  
-        pathvocabulary,
-        nbatch=10,
-        batch_size=5,
-    )
-    
-    batches = data.getbatch()
-    inp, lengths, output, mask, max_target_len,  = batches
-
-    print("inp:", inp)
-    print( inp.shape )
-    print("lengths:", lengths)
-    print("output:", output)
-    print( output.shape )
-    print("mask:", mask)
-    print( mask.shape )
-    print("max_target_len:", max_target_len)
+        self.assertEqual( s1.shape[1], batch_size )
+        self.assertEqual( s2.shape[1], batch_size )
+        self.assertEqual( t1.shape[1], batch_size )
 
 
+    def test_nmt(self):
+        
+        pathname = '~/.datasets/txt'
+        pathfile = 'para-nmt-50m-demo/para-nmt-50m-small.txt'
+        pathvocabulary = 'para-nmt-50m-demo/ngram-word-concat-40.pickle'
+        nbatch = 10
+        batch_size = 5
+
+        pathname = os.path.expanduser(pathname)
+        pathfile = os.path.expanduser(pathfile)
+        pathvocabulary = os.path.expanduser(pathvocabulary)
+
+        data = dataset.TxtNMTDataset( 
+            pathname,  
+            pathfile,
+            pathvocabulary,
+            nbatch=nbatch,
+            batch_size=batch_size,
+        )
+        
+        batches = data.getbatch()
+        inp, lengths, output, mask, max_target_len,  = batches
+
+        # print("inp:", inp)
+        # print( inp.shape )
+        # print("lengths:", lengths)
+        # print("output:", output)
+        # print( output.shape )
+        # print("mask:", mask)
+        # print( mask.shape )
+        # print("max_target_len:", max_target_len)
+
+        self.assertEqual( inp.shape[1], batch_size )
+        self.assertEqual( output.shape[1], batch_size )
 
 
-# test_prepare_data()
-# test_triplet_dataset()
-# test_pairs_dataset()
-test_nmt_dataset()
+if __name__ == '__main__':
+    unittest.main()
+
+
+
+
+
+
+
+
+
+
+
+
+
+

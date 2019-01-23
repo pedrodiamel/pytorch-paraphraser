@@ -2,8 +2,8 @@
 
 # parameters
 DATA='~/.datasets/txt'
-DATASET='para-nmt-50m-small.txt'
-VOC='ngram-word-concat-40.pickle'
+DATASET='para-nmt-50m-demo/para-nmt-50m-small.txt'
+VOC='para-nmt-50m-demo/ngram-word-concat-40.pickle'
 NAMEDATASET='txt'
 PROJECT='../out/netruns'
 EPOCHS=40
