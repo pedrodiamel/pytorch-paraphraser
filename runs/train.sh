@@ -6,12 +6,12 @@ DATASET='para-nmt-50m-demo/para-nmt-50m-small.txt'
 VOCFILE='para-nmt-50m-demo/ngram-word-concat-40.pickle'
 NAMEDATASET='txt'
 PROJECT='../out/netruns'
-EPOCHS=40
-NBATCH=100
-BATCHSIZE=10 #128
+EPOCHS=50
+NBATCH=1000
+BATCHSIZE=128 #128
 LEARNING_RATE=0.0001
 MOMENTUM=0.9
-PRINT_FREQ=10
+PRINT_FREQ=30
 RESUME='chk000000.pth.tar'
 GPU=1
 ARCH='nmt' #
@@ -19,7 +19,7 @@ LOSS='maskll'
 OPT='adam'
 SCHEDULER='step'
 SNAPSHOT=50
-EXP_NAME='nlp_'$ARCH'_'$LOSS'_'$OPT'_'$NAMEDATASET'_003'
+EXP_NAME='nlp_'$ARCH'_'$LOSS'_'$OPT'_'$NAMEDATASET'_000'
 
 
 rm -rf $PROJECT/$EXP_NAME/$EXP_NAME.log
@@ -51,5 +51,6 @@ $DATA \
 --name-dataset=$NAMEDATASET \
 --finetuning \
 2>&1 | tee -a $PROJECT/$EXP_NAME/$EXP_NAME.log \
+
 
 #--parallel \

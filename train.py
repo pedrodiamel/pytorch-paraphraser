@@ -81,11 +81,12 @@ def main():
     random.seed( args.seed )
     
     attn_model='dot'
-    hidden_size=300
+    hidden_size=500 
     encoder_n_layers=2 
     decoder_n_layers=2
     dropout=0.1
     teacher_forcing_ratio=1.0
+    max_length=10
 
     cudnn.benchmark = True
     
@@ -97,18 +98,28 @@ def main():
     
     # datasets
     # training dataset
-    dataset = TxtNMTDataset(
+    train_dataset = TxtNMTDataset(
         pathname=args.data, 
         filedataset=args.dataset,
         filevocabulary=args.vocabulary, 
         nbatch=args.nbatch,
-        batch_size=args.batch_size
+        batch_size=args.batch_size,
+        max_length=max_length,
     )
-            
+    
+    val_dataset = TxtNMTDataset(
+        pathname=args.data, 
+        filedataset=args.dataset,
+        filevocabulary=args.vocabulary, 
+        nbatch=100, #args.nbatch,
+        batch_size=args.batch_size,
+        max_length=max_length,
+    )
+    
+               
     print('Load datset')
-    print( len(dataset) )
-    #print('Train: ', len(train_data))
-    #print('Val: ', len(val_data))
+    print('Train: ', len(train_dataset))
+    print('Val: ', len(val_dataset))
 
     network = NeuralNetNMT(
         patchproject=args.project,
@@ -122,7 +133,7 @@ def main():
 
     network.create( 
         arch=args.arch, 
-        voc=dataset.voc,
+        voc=train_dataset.voc,
         loss=args.loss, 
         lr=args.lr, 
         momentum=args.momentum,
@@ -146,7 +157,7 @@ def main():
     print(network)
     
     # training neural net
-    network.fit( dataset, dataset, args.epochs, args.snapshot )
+    network.fit( train_dataset, val_dataset, args.epochs, args.snapshot )
     
     print("Optimization Finished!")
     print("DONE!!!")
