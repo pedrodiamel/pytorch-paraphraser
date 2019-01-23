@@ -10,10 +10,10 @@ import torch.nn as nn
 
 from .utils import (normalizeString, filterPairs, read_paraphraser )
 from .vocabulary import (Vocabulary, inputVar, outputVar )
+from .downloads import download_extern_data
 
-
-def prepare_data( pathname, pathvocabulary ):
-    pairs = read_paraphraser( pathname)
+def prepare_data( pathdataset, pathvocabulary ):
+    pairs = read_paraphraser( pathdataset )
     voc = Vocabulary()
     voc.load_embeddings( pathvocabulary, type='emb' )  
     print("Read %s sentence pairs" % len(pairs))
@@ -32,34 +32,55 @@ def get_triplets( pairs ):
     triplets = [ ((pairs[i][ ij[0] ], pairs[i][ ij[1] ], pairs[j[i]][ random.randint( 0,1 ) ]))  for i in range(n) ]    
     return triplets
 
-
-class TxtTripletDataset( object ):
-    '''TxtTripletDataset
+class TxtDataset( object ):
+    '''TxtDataset
     Args:
         pathname
-        pathvocabulary
+        filedataset
+        filevocabulary
         nbatch
         batch_size
     '''
 
     def __init__(self, 
         pathname, 
-        pathvocabulary, 
+        filedataset,
+        filevocabulary, 
         nbatch=100, 
         batch_size=None 
         ):
-
         self.pathname = pathname
-        self.pathvocabulary = pathvocabulary              
+        self.filevocabulary = filevocabulary
+        self.filedataset = filevocabulary
+        self.pathvocabulary = os.path.join( pathname, filevocabulary )
+        self.pathdataset = os.path.join( pathname, filedataset )
+
+        if not os.path.exists( pathname ):
+            download_extern_data( pathname )
+
         #create dataset
-        voc, pairs = prepare_data( pathname, pathvocabulary )
+        voc, pairs = prepare_data( self.pathdataset, self.pathvocabulary )
         self.voc = voc
         self.pairs = pairs
+
         self.batch_size = batch_size if batch_size else len(pairs)
         self.nbatch = nbatch  
 
     def __len__(self):
-        return self.nbatch
+        return self.nbatch #self.batch_size*
+
+class TxtTripletDataset( TxtDataset ):
+    '''TxtTripletDataset
+    '''
+    def __init__(self, 
+        pathname, 
+        filedataset,
+        filevocabulary, 
+        nbatch=100, 
+        batch_size=None 
+        ):
+        super(TxtTripletDataset, self).__init__(  pathname, filedataset, filevocabulary, nbatch, batch_size)
+
 
     def getbatch(self):
         return self.batch2TrainData( [random.choice(self.pairs) for _ in range(self.batch_size)]  )
@@ -72,7 +93,6 @@ class TxtTripletDataset( object ):
     def batch2TrainData(self, pair_batch):  
 
         #pair_batch.sort(key=lambda x: len(x[0].split(" ")), reverse=True)
-
         triple_batch = get_triplets(pair_batch)
         s1_batch, s2_batch, t1_batch = [], [], []
         for triple in triple_batch :
@@ -94,33 +114,17 @@ class TxtTripletDataset( object ):
             t1, t1_mask, t1_max_len 
             )
 
-
-
 class TxtPairDataset( object ):
     '''TxtPairDataset
-    Args:
-        pathname
-        pathvocabulary
-        nbatch
-        batch_size
     '''
-
     def __init__(self, 
         pathname, 
-        pathvocabulary, 
+        filedataset,
+        filevocabulary, 
         nbatch=100, 
         batch_size=None 
         ):
-        self.pathname = pathname
-        self.pathvocabulary = pathvocabulary
-              
-        #create dataset
-        voc, pairs = prepare_data( pathname, pathvocabulary )
-        self.voc = voc
-        self.pairs = pairs
-
-        self.batch_size = batch_size if batch_size else len(pairs)
-        self.nbatch = nbatch  
+        super(TxtPairDataset, self).__init__(  pathname, filedataset, filevocabulary, nbatch, batch_size)
 
     def __len__(self):
         return self.batch_size
@@ -155,33 +159,18 @@ class TxtPairDataset( object ):
             s2, s2_mask, s2_max_len, 
             )
 
-
-
 class TxtNMTDataset( object ):
     '''TxtNMTDataset
-    Args:
-        pathname
-        pathvocabulary
-        nbatch
-        batch_size
     '''
-
     def __init__(self, 
         pathname, 
-        pathvocabulary, 
+        filedataset,
+        filevocabulary, 
         nbatch=100, 
         batch_size=None 
         ):
-        self.pathname = pathname
-        self.pathvocabulary = pathvocabulary
-              
-        #create dataset
-        voc, pairs = prepare_data( pathname, pathvocabulary )
-        self.voc = voc
-        self.pairs = pairs
+        super(TxtNMTDataset, self).__init__(  pathname, filedataset, filevocabulary, nbatch, batch_size)
 
-        self.batch_size = batch_size if batch_size else len(pairs)
-        self.nbatch = nbatch  
 
     def __len__(self):
         return self.nbatch #self.batch_size*
@@ -215,3 +204,4 @@ class TxtNMTDataset( object ):
             inp, lengths, 
             output, mask, max_target_len, 
             )
+

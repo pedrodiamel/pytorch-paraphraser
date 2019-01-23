@@ -1,9 +1,6 @@
-
-
 import os
 import shutil
 import numpy as np
-
 
 import torch
 from torch.autograd import Variable
@@ -12,22 +9,6 @@ import torch.nn.functional as F
 
 import warnings
 warnings.filterwarnings("ignore")
-
-
-
-
-def to_np(x):
-    return x.data.cpu().numpy()
-
-def to_var(x, cuda, requires_grad=False, volatile=False):
-    if cuda: x = x.cuda()
-    return Variable(x, requires_grad=requires_grad, volatile=volatile)
-
-
-def fit(net, ngpu, inputs):
-    if ngpu > 1: outputs = nn.parallel.data_parallel(net, inputs, range(ngpu))
-    else: outputs = net(inputs)
-    return outputs
 
 def save_checkpoint(state, is_best, path, filename='checkpoint.pth.tar'):
     """Saves checkpoint to disk"""

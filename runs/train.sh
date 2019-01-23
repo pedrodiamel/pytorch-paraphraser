@@ -1,8 +1,9 @@
 #!/bin/bash
 
 # parameters
-DATA='../rec/data/para-nmt-50m-small.txt'
-VOCPATH='../rec/data/ngram-word-concat-40.pickle'
+DATA='~/.datasets/txt'
+DATASET='para-nmt-50m-small.txt'
+VOC='ngram-word-concat-40.pickle'
 NAMEDATASET='txt'
 PROJECT='../out/netruns'
 EPOCHS=40
