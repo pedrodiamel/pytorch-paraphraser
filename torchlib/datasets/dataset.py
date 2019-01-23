@@ -52,13 +52,13 @@ class TxtDataset( object ):
         nbatch=100, 
         batch_size=None
         ):
-        self.pathname = pathname
+        self.pathname       = os.path.expanduser( pathname )
         self.filevocabulary = filevocabulary
-        self.filedataset = filevocabulary
-        self.pathvocabulary = os.path.join( pathname, filevocabulary )
-        self.pathdataset = os.path.join( pathname, filedataset )
+        self.filedataset    = filevocabulary
+        self.pathvocabulary = os.path.join( self.pathname, filevocabulary )
+        self.pathdataset    = os.path.join( self.pathname, filedataset )
 
-        if not os.path.exists( pathname ):
+        if not os.path.exists( self.pathname ):
             download_data( self.namefile, self.idfile, self.pathname, ext=True )
         
         #create dataset
@@ -116,7 +116,7 @@ class TxtTripletDataset( TxtDataset ):
             t1, t1_mask, t1_max_len 
             )
 
-class TxtPairDataset( object ):
+class TxtPairDataset( TxtDataset ):
     '''TxtPairDataset
     '''
     def __init__(self, 
@@ -161,7 +161,7 @@ class TxtPairDataset( object ):
             s2, s2_mask, s2_max_len, 
             )
 
-class TxtNMTDataset( object ):
+class TxtNMTDataset( TxtDataset ):
     '''TxtNMTDataset
     '''
     def __init__(self, 

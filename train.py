@@ -25,7 +25,8 @@ def arg_parser():
                         help='path to dataset')
     parser.add_argument('--vocabulary', type=str, metavar='NAME',
                         help='(default: none)')
-
+    parser.add_argument('--dataset', type=str, metavar='NAME',
+                        help='(default: none)')
     parser.add_argument('--no-cuda', action='store_true', default=False,
                         help='enables CUDA training')
     parser.add_argument('-g', '--gpu', default=0, type=int, metavar='N',
@@ -97,8 +98,9 @@ def main():
     # datasets
     # training dataset
     dataset = TxtNMTDataset(
-        pathname=args.data,  
-        pathvocabulary=args.vocabulary,
+        pathname=args.data, 
+        filedataset=args.dataset,
+        filevocabulary=args.vocabulary, 
         nbatch=args.nbatch,
         batch_size=args.batch_size
     )

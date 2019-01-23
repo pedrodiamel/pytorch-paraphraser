@@ -1,8 +1,9 @@
 #!/bin/bash
 
 # parameters
-DATA='../rec/data/para-nmt-50m-small.txt'
-VOCPATH='../rec/data/ngram-word-concat-40.pickle'
+DATA='~/.datasets/txt'
+DATASET='para-nmt-50m-demo/para-nmt-50m-small.txt'
+VOCFILE='para-nmt-50m-demo/ngram-word-concat-40.pickle'
 NAMEDATASET='txt'
 PROJECT='../out/netruns'
 EPOCHS=300
@@ -31,7 +32,8 @@ mkdir $PROJECT/$EXP_NAME
 python ../train_triplet.py \
 $DATA \
 --project=$PROJECT \
---vocabulary=$VOCPATH \
+--vocabulary=$VOCFILE \
+--dataset=$DATASET \
 --name=$EXP_NAME \
 --epochs=$EPOCHS \
 --nbatch=$NBATCH \
