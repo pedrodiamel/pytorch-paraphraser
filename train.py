@@ -37,14 +37,10 @@ def arg_parser():
                         help='number of total epochs to run')
     parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
                         help='manual epoch number (useful on restarts)')
-
-
     parser.add_argument('-b', '--batch-size', default=256, type=int, metavar='N', 
                         help='mini-batch size (default: 256)')
     parser.add_argument('-n', '--nbatch', default=30, type=int, metavar='N', 
                         help='number of batch (default: 30)')
-
-
     parser.add_argument('--lr', '--learning-rate', default=0.0001, type=float, metavar='LR',
                         help='initial learning rate')
     parser.add_argument('--momentum', type=float, default=0.5, metavar='M',
@@ -71,7 +67,6 @@ def arg_parser():
                         help='snapshot (default: 10)')
     parser.add_argument('--parallel', action='store_true', default=False,
                         help='Parallel')
-
     parser.add_argument('--name-dataset', default='txt', type=str,
                         help='name dataset')
 
@@ -94,7 +89,6 @@ def main():
     teacher_forcing_ratio=1.0
 
     cudnn.benchmark = True
-
     
     print('Baseline nlp paragrap paraphrase {}!!!'.format(datetime.datetime.now()))
     print('\nArgs:')
