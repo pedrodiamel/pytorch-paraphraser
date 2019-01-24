@@ -18,10 +18,10 @@ class TestDataset( unittest.TestCase ):
         print( pathvocabulary )
 
         voc, pairs = dataset.prepare_data( pathfile, pathvocabulary )
-
-        # print(random.choice(pairs))
+        
+        #print(random.choice(pairs))
         print(len(pairs))
-        for pair in pairs[:10]:
+        for pair in pairs[:5]:
             print(pair)
 
         self.assertTrue( len(pairs) > 0 )
@@ -87,17 +87,28 @@ class TestDataset( unittest.TestCase ):
         batches = data.getbatch()
         inp, lengths, output, mask, max_target_len,  = batches
 
-        # print("inp:", inp)
-        # print( inp.shape )
+        print("inp: \n", inp)
+        print( inp.shape )
         # print("lengths:", lengths)
-        # print("output:", output)
-        # print( output.shape )
-        # print("mask:", mask)
-        # print( mask.shape )
+        print("output: \n", output)
+        print( output.shape )
+        print("mask: \n", mask)
+        print( mask.shape )
         # print("max_target_len:", max_target_len)
+        print()
 
         self.assertEqual( inp.shape[1], batch_size )
         self.assertEqual( output.shape[1], batch_size )
+                
+        all_ref_words = []
+        for j in range( batch_size ): 
+            tokens_ref = output[:,j]
+            decoded_ref_words = [data.voc.index2word[ token.item() ] for token in tokens_ref]
+            decoded_ref_words[:] = [x for x in decoded_ref_words if not (x == data.voc.EOS_token or x == data.voc.PAD_token)]
+            all_ref_words.append( decoded_ref_words )
+
+        for line in all_ref_words:
+            print( line )
 
 
 if __name__ == '__main__':

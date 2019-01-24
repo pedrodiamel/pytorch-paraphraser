@@ -12,12 +12,12 @@ from .utils import (normalizeString, filterPairs, read_paraphraser )
 from .vocabulary import (Vocabulary, inputVar, outputVar )
 from .downloads import download_data
 
-def prepare_data( pathdataset, pathvocabulary ):
+def prepare_data( pathdataset, pathvocabulary, max_length=10 ):
     pairs = read_paraphraser( pathdataset )
     voc = Vocabulary()
     voc.load_embeddings( pathvocabulary, type='emb' )  
     print("Read %s sentence pairs" % len(pairs))
-    pairs = filterPairs(pairs)        
+    pairs = filterPairs(pairs, max_length=max_length)        
     print("Counted words:")
     print(voc.n_words)
     return voc, pairs
@@ -40,6 +40,7 @@ class TxtDataset( object ):
         filevocabulary
         nbatch
         batch_size
+        max_length
     '''
     
     idfile = '1rbF3daJjCsa1-fu2GANeJd2FBXos1ugD'
@@ -50,7 +51,8 @@ class TxtDataset( object ):
         filedataset,
         filevocabulary, 
         nbatch=100, 
-        batch_size=None
+        batch_size=None,
+        max_length=10
         ):
         self.pathname       = os.path.expanduser( pathname )
         self.filevocabulary = filevocabulary
@@ -62,7 +64,7 @@ class TxtDataset( object ):
             download_data( self.namefile, self.idfile, self.pathname, ext=True )
         
         #create dataset
-        voc, pairs = prepare_data( self.pathdataset, self.pathvocabulary )
+        voc, pairs = prepare_data( self.pathdataset, self.pathvocabulary, max_length )
         self.voc = voc
         self.pairs = pairs
         self.batch_size = batch_size if batch_size else len(pairs)
@@ -79,9 +81,10 @@ class TxtTripletDataset( TxtDataset ):
         filedataset,
         filevocabulary, 
         nbatch=100, 
-        batch_size=None 
+        batch_size=None,
+        max_length=10
         ):
-        super(TxtTripletDataset, self).__init__(  pathname, filedataset, filevocabulary, nbatch, batch_size)
+        super(TxtTripletDataset, self).__init__(  pathname, filedataset, filevocabulary, nbatch, batch_size, max_length)
 
 
     def getbatch(self):
@@ -124,9 +127,10 @@ class TxtPairDataset( TxtDataset ):
         filedataset,
         filevocabulary, 
         nbatch=100, 
-        batch_size=None 
+        batch_size=None,
+        max_length=10
         ):
-        super(TxtPairDataset, self).__init__(  pathname, filedataset, filevocabulary, nbatch, batch_size)
+        super(TxtPairDataset, self).__init__(  pathname, filedataset, filevocabulary, nbatch, batch_size, max_length)
 
     def __len__(self):
         return self.batch_size
@@ -169,9 +173,10 @@ class TxtNMTDataset( TxtDataset ):
         filedataset,
         filevocabulary, 
         nbatch=100, 
-        batch_size=None 
+        batch_size=None,
+        max_length=10,
         ):
-        super(TxtNMTDataset, self).__init__(  pathname, filedataset, filevocabulary, nbatch, batch_size)
+        super(TxtNMTDataset, self).__init__(  pathname, filedataset, filevocabulary, nbatch, batch_size, max_length)
 
 
     def __len__(self):
