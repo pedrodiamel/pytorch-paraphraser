@@ -2,7 +2,7 @@
 
 # parameters
 DATA='~/.datasets/txt'
-DATASET='para-nmt-50m/para-nmt-50m.txt' #para-nmt-50m/para-nmt-50m.txt; para-nmt-50m-demo/para-nmt-50m-small.txt
+DATASET='para-nmt-50m-demo/para-nmt-50m-small.txt' #para-nmt-50m/para-nmt-50m.txt; para-nmt-50m-demo/para-nmt-50m-small.txt
 VOCFILE='para-nmt-50m-demo/ngram-word-concat-40.pickle'
 NAMEDATASET='txt'
 PROJECT='../out/netruns'
@@ -13,19 +13,19 @@ LEARNING_RATE=0.0001
 MOMENTUM=0.9
 PRINT_FREQ=30
 RESUME='model_best.pth.tar' #'chk000042.pth.tar', model_best.pth.tar
-GPU=1
+GPU=0
 ARCH='nmt' #
 LOSS='maskll'
 OPT='adam'
 SCHEDULER='step'
 SNAPSHOT=50
-EXP_NAME='nlp_'$ARCH'_'$LOSS'_'$OPT'_'$NAMEDATASET'_001'
+EXP_NAME='nlp_'$ARCH'_'$LOSS'_'$OPT'_'$NAMEDATASET'_002'
 
 
-# rm -rf $PROJECT/$EXP_NAME/$EXP_NAME.log
-# rm -rf $PROJECT/$EXP_NAME/
-# mkdir $PROJECT
-# mkdir $PROJECT/$EXP_NAME 
+rm -rf $PROJECT/$EXP_NAME/$EXP_NAME.log
+rm -rf $PROJECT/$EXP_NAME/
+mkdir $PROJECT
+mkdir $PROJECT/$EXP_NAME 
 
 
 ## execute

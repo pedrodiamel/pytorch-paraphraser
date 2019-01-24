@@ -13,8 +13,12 @@ from .vocabulary import (Vocabulary, inputVar, outputVar )
 from .downloads import download_data
 
 def prepare_data( pathdataset, pathvocabulary, max_length=10 ):
+    
+    #read dataset
     pairs = read_paraphraser( pathdataset )
+    #create vocabulary
     voc = Vocabulary()
+    #load vocabulary
     voc.load_embeddings( pathvocabulary, type='emb' )  
     print("Read %s sentence pairs" % len(pairs))
     pairs = filterPairs(pairs, max_length=max_length)        
@@ -31,6 +35,24 @@ def get_triplets( pairs ):
         random.shuffle( j )
     triplets = [ ((pairs[i][ ij[0] ], pairs[i][ ij[1] ], pairs[j[i]][ random.randint( 0,1 ) ]))  for i in range(n) ]    
     return triplets
+
+def get_pairs( dataset, n=5 ):    
+    pairs = [] 
+    Cls, Words = read_paraphraser
+    C,F = np.uniqread_paraphraser     
+    for c,f in ziread_paraphraser
+        # a, b   read_paraphraser
+        a = np.array( np.random.choice( np.where(Cls==c)[0], min(f,n), replace=False ))
+        b = np.array( np.random.choice( np.where(Cls==c)[0], min(f,n), replace=False ))
+        #while np.any((a-b)==0): #aligning check
+        while np.sum((a-b) == 0 )/b.shape[0] > 0.1: #aligning check
+            random.shuffle(b) 
+        pairs += zip(Words[a],Words[b])    
+    random.shuffle(pairs)
+    return pairs
+
+
+
 
 class TxtDataset( object ):
     '''TxtDataset
