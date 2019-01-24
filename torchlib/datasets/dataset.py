@@ -38,16 +38,17 @@ def get_triplets( pairs ):
 
 def get_pairs( dataset, n=5 ):    
     pairs = [] 
-    Cls, Words = read_paraphraser
-    C,F = np.uniqread_paraphraser     
-    for c,f in ziread_paraphraser
-        # a, b   read_paraphraser
+    Cls, Words = dataset[:,0], dataset[:,1]
+    C,F = np.unique( Cls, return_counts=True )
+    for c,f in zip(C,F):         
+        # a, b   
         a = np.array( np.random.choice( np.where(Cls==c)[0], min(f,n), replace=False ))
         b = np.array( np.random.choice( np.where(Cls==c)[0], min(f,n), replace=False ))
         #while np.any((a-b)==0): #aligning check
         while np.sum((a-b) == 0 )/b.shape[0] > 0.1: #aligning check
             random.shuffle(b) 
-        pairs += zip(Words[a],Words[b])    
+        pairs += zip(Words[a],Words[b])
+        #print(c, a,b)
     random.shuffle(pairs)
     return pairs
 
