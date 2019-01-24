@@ -1,8 +1,5 @@
-
 # STD MODULE
 import os
-import numpy as np
-import cv2
 import random
 
 # TORCH MODULE
@@ -33,7 +30,6 @@ def arg_parser():
                         help='divice number (default: 0)')
     parser.add_argument('--seed', type=int, default=1,
                         help='random seed (default: 1)')
-
     parser.add_argument('--epochs', default=90, type=int, metavar='N',
                         help='number of total epochs to run')
     parser.add_argument('--start-epoch', default=0, type=int, metavar='N',

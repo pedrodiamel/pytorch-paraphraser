@@ -2,7 +2,7 @@
 
 # parameters
 DATA='~/.datasets/txt'
-DATASET='para-nmt-50m-demo/para-nmt-50m-small.txt'
+DATASET='para-nmt-50m/para-nmt-50m.txt' #para-nmt-50m/para-nmt-50m.txt; para-nmt-50m-demo/para-nmt-50m-small.txt
 VOCFILE='para-nmt-50m-demo/ngram-word-concat-40.pickle'
 NAMEDATASET='txt'
 PROJECT='../out/netruns'
@@ -19,7 +19,7 @@ LOSS='maskll'
 OPT='adam'
 SCHEDULER='step'
 SNAPSHOT=50
-EXP_NAME='nlp_'$ARCH'_'$LOSS'_'$OPT'_'$NAMEDATASET'_000'
+EXP_NAME='nlp_'$ARCH'_'$LOSS'_'$OPT'_'$NAMEDATASET'_001'
 
 
 # rm -rf $PROJECT/$EXP_NAME/$EXP_NAME.log
