@@ -1,12 +1,15 @@
 # pytorch-paraphraser
+
 Pytorch Paraphrase Generation
 
-## TODO: 
-- [ ] Create command dataset
-- [ ] Module of test UI (Flask module) 
-- [ ] Evaluate model 
+## TODO
 
-## Datasets 
+- [ ] Create command for download data
+- [ ] Create provide for CMD dataset and Quora dataset
+- [ ] Module for test (UI Flask module)
+- [ ] Evaluate model
+
+## Datasets
 
 - https://data.quora.com/First-Quora-Dataset-Release-Question-Pairs
 - http://www.cs.cmu.edu/~jwieting/
@@ -19,7 +22,8 @@ Pytorch Paraphrase Generation
 - https://github.com/jwieting/para-nmt-50m
 
 
-## Reference 
+## Reference
+
 - https://arxiv.org/pdf/1706.01847.pdf
 - http://www.cs.cmu.edu/~jwieting/wieting2017Millions.pdf
 - https://arxiv.org/pdf/1711.05732.pdf
