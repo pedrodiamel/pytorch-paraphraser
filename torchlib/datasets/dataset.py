@@ -56,12 +56,12 @@ class TxtDataset( object ):
         ):
         self.pathname       = os.path.expanduser( pathname )
         self.filevocabulary = filevocabulary
-        self.filedataset    = filevocabulary
+        self.filedataset    = filedataset
         self.pathvocabulary = os.path.join( self.pathname, filevocabulary )
         self.pathdataset    = os.path.join( self.pathname, filedataset )
 
-        if not os.path.exists( self.pathname ):
-            download_data( self.namefile, self.idfile, self.pathname, ext=True )
+        #if not os.path.exists( self.pathname ):
+        #    download_data( self.namefile, self.idfile, self.pathname, ext=True )
         
         #create dataset
         voc, pairs = prepare_data( self.pathdataset, self.pathvocabulary, max_length )

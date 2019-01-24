@@ -4,8 +4,9 @@ Pytorch Paraphrase Generation
 
 ## TODO
 
-- [ ] Create command for download data
-- [ ] Create provide for CMD dataset and Quora dataset
+- [X] Create command for download data
+- [ ] CMD analysis
+- [ ] Create provide for CMD dataset
 - [ ] Module for test (UI Flask module)
 - [ ] Evaluate model
 
@@ -13,6 +14,8 @@ Pytorch Paraphrase Generation
 
 - https://data.quora.com/First-Quora-Dataset-Release-Question-Pairs
 - http://www.cs.cmu.edu/~jwieting/
+- https://nlp.stanford.edu/projects/snli/
+- Semeval
 
 ## Repos
 
