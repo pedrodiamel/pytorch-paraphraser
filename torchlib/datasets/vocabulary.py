@@ -52,7 +52,7 @@ class Vocabulary:
 
 
 def indexesFromSentence(voc, sentence):
-    return [voc.word2index.get(word, voc.UNK_token )  for word in sentence.split(' ')] + [ voc.EOS_token ]
+    return [voc.word2index.get( word, voc.UNK_token )  for word in sentence.split(' ')] + [ voc.EOS_token ]
 
 def zeroPadding(l, fillvalue):
     return list(itertools.zip_longest(*l, fillvalue=fillvalue))
@@ -76,6 +76,7 @@ def inputVar(l, voc):
     padVar = torch.LongTensor(padList)
     return padVar, lengths
 
+
 # Returns padded target sequence tensor, padding mask, and max target length
 def outputVar(l, voc):
     indexes_batch = [indexesFromSentence(voc, sentence) for sentence in l]
@@ -85,5 +86,4 @@ def outputVar(l, voc):
     mask = torch.ByteTensor(mask)
     padVar = torch.LongTensor(padList)
     return padVar, mask, max_target_len
-
 

@@ -213,7 +213,7 @@ class NeuralNetNMT(NeuralNetAbstractNLP):
                 self.teacher_forcing_ratio, 
                 self.clip
                 )
-            loss = loss/n_totals
+            #loss = loss/n_totals
               
             # optimizer
             # Zero gradients
@@ -221,6 +221,7 @@ class NeuralNetNMT(NeuralNetAbstractNLP):
             self.decoder_optimizer.zero_grad()
             
             loss.backward()
+            loss /=n_totals
 
             # Clip gradients: gradients are modified in place
             _ = torch.nn.utils.clip_grad_norm_(self.encoder.parameters(), self.clip)
@@ -276,33 +277,31 @@ class NeuralNetNMT(NeuralNetAbstractNLP):
                     self.clip
                     )
                 loss = loss/n_totals
-
+    
                 # metrics accuracy                      
-                tokens_batch, scores_batch = self.search( inp, lengths, max_target_len, batch_size )
-                #tokens_batch = tokens_batch.cpu().numpy()
-                #scores_batch = scores_batch.cpu().numpy()
+                tokens_batch, scores_batch = self.search( inp , lengths, max_target_len, batch_size )
                 
                 all_hyp_words = []
                 all_ref_words = []
                 EOS = self.voc.index2word[self.voc.EOS_token]
                 PAD = self.voc.index2word[self.voc.PAD_token]
-                UNK = self.voc.index2word[self.voc.UNK_token]
-                
+                UNK = self.voc.index2word[self.voc.UNK_token]                
                 for j in range( batch_size ): 
                     tokens_hyp = tokens_batch[:,j]
                     tokens_ref = output[:,j]
                     
                     #decoded_hyp_words = [self.voc.index2word[ token.item() ] for token in tokens_hyp]
-                    decoded_hyp_words = [self.voc.index2word.get(token.item(), UNK ) for token in tokens_hyp] 
+                    decoded_hyp_words = [ self.voc.index2word.get( token.item(), UNK ) for token in tokens_hyp ] 
                     decoded_hyp_words[:] = [x for x in decoded_hyp_words if not (x == EOS or x == PAD)]
                     all_hyp_words.append( decoded_hyp_words )
                     
                     #decoded_ref_words = [ self.voc.index2word[ token.item() ] for token in tokens_ref]
-                    decoded_ref_words = [self.voc.index2word.get(token.item(), UNK ) for token in tokens_ref] 
+                    decoded_ref_words = [self.voc.index2word.get( token.item(), UNK ) for token in tokens_ref ] 
                     decoded_ref_words[:] = [x for x in decoded_ref_words if not (x == EOS or x == PAD)]                    
                     all_ref_words.append( decoded_ref_words )
-
                 
+                
+                all_ref_words = [ [ref] for ref in all_ref_words ]
                 blue = corpus_bleu(all_ref_words, all_hyp_words) 
 
                 # measure elapsed time
@@ -560,14 +559,17 @@ class NeuralNetNMT(NeuralNetAbstractNLP):
         prec = 0
         if resume:
             if os.path.isfile(resume):
+                
                 print("=> loading checkpoint '{}'".format(resume))
                 checkpoint = torch.load(resume)
+                
                 start_epoch = checkpoint['epoch']
                 prec = checkpoint['prec']
                 encoder.load_state_dict(checkpoint['en'])
-                encoder.load_state_dict(checkpoint['de'])
+                decoder.load_state_dict(checkpoint['de'])
+                
                 self.encoder_optimizer.load_state_dict(checkpoint['en_optimizer'])
-                self.decoder_optimizer.load_state_dict(checkpoint['de_optimizer'])     
+                self.decoder_optimizer.load_state_dict(checkpoint['de_optimizer'])                    
                 self.embedding = encoder.embedding
 
                 print("=> loaded checkpoint '{}' (epoch {})"
