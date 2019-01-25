@@ -8,11 +8,11 @@ import random
 import torch
 import torch.nn as nn
 
-from .utils import (normalizeString, filterPairs, read_paraphraser )
+from .utils import (normalizeString, filterPairs, get_triplets, read_pairs )
 from .vocabulary import (Vocabulary, inputVar, outputVar )
 from .downloads import download_data
 
-def prepare_data( pathdataset, pathvocabulary, max_length=10 ):
+def prepare_data( pathdataset, pathvocabulary, read_paraphraser=read_pairs, max_length=10 ):
     
     #read dataset
     pairs = read_paraphraser( pathdataset )
@@ -25,34 +25,6 @@ def prepare_data( pathdataset, pathvocabulary, max_length=10 ):
     print("Counted words:")
     print(voc.n_words)
     return voc, pairs
-
-def get_triplets( pairs ):
-    n = len(pairs)
-    i  = np.arange( n )
-    j  = np.arange( n )
-    ij = np.array([0,1]); random.shuffle( ij ) 
-    while np.sum( (np.abs(i-j) == 0 ) ) != 0:
-        random.shuffle( j )
-    triplets = [ ((pairs[i][ ij[0] ], pairs[i][ ij[1] ], pairs[j[i]][ random.randint( 0,1 ) ]))  for i in range(n) ]    
-    return triplets
-
-def get_pairs( dataset, n=5 ):    
-    pairs = [] 
-    Cls, Words = dataset[:,0], dataset[:,1]
-    C,F = np.unique( Cls, return_counts=True )
-    for c,f in zip(C,F):         
-        # a, b   
-        a = np.array( np.random.choice( np.where(Cls==c)[0], min(f,n), replace=False ))
-        b = np.array( np.random.choice( np.where(Cls==c)[0], min(f,n), replace=False ))
-        #while np.any((a-b)==0): #aligning check
-        while np.sum((a-b) == 0 )/b.shape[0] > 0.1: #aligning check
-            random.shuffle(b) 
-        pairs += zip(Words[a],Words[b])
-        #print(c, a,b)
-    random.shuffle(pairs)
-    return pairs
-
-
 
 
 class TxtDataset( object ):
@@ -75,7 +47,8 @@ class TxtDataset( object ):
         filevocabulary, 
         nbatch=100, 
         batch_size=None,
-        max_length=10
+        max_length=10,
+        read_paraphraser=read_pairs,
         ):
         self.pathname       = os.path.expanduser( pathname )
         self.filevocabulary = filevocabulary
@@ -87,14 +60,16 @@ class TxtDataset( object ):
         #    download_data( self.namefile, self.idfile, self.pathname, ext=True )
         
         #create dataset
-        voc, pairs = prepare_data( self.pathdataset, self.pathvocabulary, max_length )
+        voc, pairs = prepare_data( self.pathdataset, self.pathvocabulary, read_paraphraser, max_length )
+
         self.voc = voc
         self.pairs = pairs
         self.batch_size = batch_size if batch_size else len(pairs)
         self.nbatch = nbatch
 
     def __len__(self):
-        return self.nbatch #self.batch_size*
+        return self.nbatch #self.batch_size
+
 
 class TxtTripletDataset( TxtDataset ):
     '''TxtTripletDataset

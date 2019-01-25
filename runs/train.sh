@@ -19,7 +19,7 @@ LOSS='maskll'
 OPT='adam'
 SCHEDULER='step'
 SNAPSHOT=50
-EXP_NAME='nlp_'$ARCH'_'$LOSS'_'$OPT'_'$NAMEDATASET'_002'
+EXP_NAME='nlp_'$ARCH'_'$LOSS'_'$OPT'_'$NAMEDATASET'_003'
 
 
 rm -rf $PROJECT/$EXP_NAME/$EXP_NAME.log
