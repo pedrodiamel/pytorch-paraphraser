@@ -25,8 +25,8 @@ class NeuralNetAbstractNLP(object):
     """
 
     def __init__(self,
-        patchproject,
-        nameproject,
+        patchproject='',
+        nameproject='',
         no_cuda=True,
         parallel=False,
         seed=1,
@@ -59,8 +59,6 @@ class NeuralNetAbstractNLP(object):
 
         # Set the graphic visualization
         self.plotter = None
-        #self.plotter = gph.VisdomLinePlotter(env_name=self.nameproject)
-
         
         # initialization var
         self.print_freq = print_freq

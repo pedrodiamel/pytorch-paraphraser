@@ -36,8 +36,8 @@ class NeuralNetNMT(NeuralNetAbstractNLP):
     """
 
     def __init__(self,
-        patchproject,
-        nameproject,
+        patchproject='',
+        nameproject='',
         no_cuda=True,
         parallel=False,
         seed=1,
@@ -632,7 +632,6 @@ class NeuralNetNMT(NeuralNetAbstractNLP):
                 print("=> no checkpoint found at '{}'".format(pathnamemodel))   
 
         return bload
-
 
     def __str__(self): 
         return str(
