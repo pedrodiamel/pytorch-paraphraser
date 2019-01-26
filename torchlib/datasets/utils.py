@@ -56,7 +56,7 @@ def get_pairs( word, types, n=5 ):
     for c,f in zip(C,F):         
         # a, b   
         a = np.array( np.random.choice( np.where(types==c)[0], min(f,n), replace=False ))
-        b = np.array( np.random.choice( np.where(types==y)[0], min(f,n), replace=False ))
+        b = np.array( np.random.choice( np.where(types==c)[0], min(f,n), replace=False ))
         #while np.any((a-b)==0): #aligning check
         while np.sum((a-b) == 0 )/b.shape[0] > 0.1: #aligning check
             random.shuffle(b) 

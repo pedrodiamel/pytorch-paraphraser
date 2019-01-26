@@ -10,6 +10,7 @@ import torch.backends.cudnn as cudnn
 
 # LOCAL MODULE
 from torchlib.datasets.dataset  import TxtNMTDataset
+from torchlib.datasets import utils
 from torchlib.nmtneuralnet import NeuralNetNMT
 
 from argparse import ArgumentParser
@@ -105,11 +106,12 @@ def main():
     
     val_dataset = TxtNMTDataset(
         pathname=args.data, 
-        filedataset=args.dataset,
+        filedataset='dbcommand.csv', #args.dataset,
         filevocabulary=args.vocabulary, 
         nbatch=100, #args.nbatch,
         batch_size=args.batch_size,
         max_length=max_length,
+        read_paraphraser=utils.read_word2pairs
     )
     
                

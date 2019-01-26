@@ -80,9 +80,10 @@ class TxtTripletDataset( TxtDataset ):
         filevocabulary, 
         nbatch=100, 
         batch_size=None,
-        max_length=10
+        max_length=10,
+        read_paraphraser=read_pairs,
         ):
-        super(TxtTripletDataset, self).__init__(  pathname, filedataset, filevocabulary, nbatch, batch_size, max_length)
+        super(TxtTripletDataset, self).__init__(  pathname, filedataset, filevocabulary, nbatch, batch_size, max_length, read_paraphraser)
 
 
     def getbatch(self):
@@ -126,9 +127,10 @@ class TxtPairDataset( TxtDataset ):
         filevocabulary, 
         nbatch=100, 
         batch_size=None,
-        max_length=10
+        max_length=10,
+        read_paraphraser=read_pairs,
         ):
-        super(TxtPairDataset, self).__init__(  pathname, filedataset, filevocabulary, nbatch, batch_size, max_length)
+        super(TxtPairDataset, self).__init__(  pathname, filedataset, filevocabulary, nbatch, batch_size, max_length, read_paraphraser)
 
     def __len__(self):
         return self.batch_size
@@ -173,8 +175,9 @@ class TxtNMTDataset( TxtDataset ):
         nbatch=100, 
         batch_size=None,
         max_length=10,
+        read_paraphraser=read_pairs
         ):
-        super(TxtNMTDataset, self).__init__(  pathname, filedataset, filevocabulary, nbatch, batch_size, max_length)
+        super(TxtNMTDataset, self).__init__( pathname, filedataset, filevocabulary, nbatch, batch_size, max_length, read_paraphraser)
 
 
     def __len__(self):
