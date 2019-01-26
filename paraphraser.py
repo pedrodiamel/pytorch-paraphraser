@@ -20,8 +20,34 @@ def evaluate(net, voc, sentence, max_length):
     # Decode sentence with searcher
     tokens, scores = net(input_batch, lengths, max_length)
     # indexes -> words
-    decoded_words = [voc.index2word.get(token.item(), voc.index2word[ voc.UNK_token] ) for token in tokens] 
+    UNK = voc.index2word[voc.UNK_token]     
+    decoded_words = [voc.index2word.get(token.item(), UNK) for token in tokens] 
     return decoded_words
+
+
+
+def evaluateInput(net, voc, max_length):
+    input_sentence = ''
+    while(1):
+        try:
+            # Get input sentence
+            input_sentence = input('>> ')
+            # Check if it is quit case
+            if input_sentence == 'q' or input_sentence == 'quit': break
+            # Normalize sentence
+            input_sentence = normalizeString(input_sentence)
+            # Evaluate sentence
+            decoded_words = evaluate(net, voc, input_sentence, max_length  )
+            # Format and print response sentence            
+            EOS = voc.index2word[voc.EOS_token]
+            PAD = voc.index2word[voc.PAD_token]
+            decoded_words[:] = [x for x in decoded_words if not (x == EOS or x == PAD)]
+            print('Generate:', ' '.join(decoded_words))
+        except KeyError:
+            print("Error: Encountered unknown word.")
+
+
+
 
 # def arg_parser():
 #     """Arg parser"""    
@@ -30,18 +56,19 @@ def evaluate(net, voc, sentence, max_length):
 #     return parser
 
 def main():
-
-    gpu            = 0
-    no_cuda        = True
+ 
+    pathmodel      = 'out/netruns/nlp_nmt_maskll_adam_txt_000/models/model_best.pth.tar'
+    pathvocabulary = '~/.datasets/txt/para-nmt-50m-demo/ngram-word-concat-40.pickle'    
+    max_length     = 10
     parallel       = False
-    pathmodel      = 'out/netruns/nlp_nmt_maskll_adam_paranmt_003/models/model_best.pth.tar'
-    pathvocabulary = '~/.datasets/txt/para-nmt-50m-demo/ngram-word-concat-40.pickle'
-    pathvocabulary = os.path.expanduser( pathvocabulary )    
-    paraphraser    = 'This a test !'
-
+    no_cuda        = True
+    gpu            = 0
+    
+    sentence       = 'this is a difficult test !'
 
     # load vocabulary
     print('>> Load vocabulary ...')
+    pathvocabulary = os.path.expanduser( pathvocabulary )
     voc = Vocabulary()
     voc.load_embeddings( pathvocabulary, type='emb' ) 
     print(">> Counted words:")
@@ -60,11 +87,18 @@ def main():
     print( network )
 
 
-    # evaluate
-    decoded_words = evaluate(network, voc, paraphraser,  )
+#     # evaluate
+#     sentence = normalizeString(sentence)
+#     decoded_words = evaluate(network, voc, sentence, max_length  )    
+#     EOS = voc.index2word[voc.EOS_token]
+#     PAD = voc.index2word[voc.PAD_token]
+#     decoded_words[:] = [x for x in decoded_words if not (x == EOS or x == PAD)]
+#     print('>> REUSLT: ')
+#     print('>> input: ', sentence)
+#     print('<< output: ',  ' '.join(decoded_words) )
 
-    print('<< REUSLT: ')
-    print('<< ',  decoded_words)
+
+    evaluateInput(network, voc, max_length)
 
 
 

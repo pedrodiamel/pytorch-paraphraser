@@ -354,7 +354,7 @@ class NeuralNetNMT(NeuralNetAbstractNLP):
         
         with torch.no_grad():
             end = time.time()
-            for i, batch in enumerate( tqdm( dataset.getbatchs() ) ):
+            for i, batch in  enumerate( tqdm(dataset.getbatchs() ) ):
                 # get data
                 inp, lengths, output, mask, max_target_len = batch                            
                 batch_size = inp.shape[1]
@@ -366,31 +366,33 @@ class NeuralNetNMT(NeuralNetAbstractNLP):
                     mask = mask.cuda()
                     
                 # fit (forward)
-                tokens_batch, scores_batch = self.search( inp, lengths, max_target_len, batch_size )
+                tokens_batch, scores_batch = self.search( inp , lengths, max_target_len, batch_size )
 
                 all_hyp_words = []
                 all_ref_words = []
+                EOS = self.voc.index2word[self.voc.EOS_token]
+                PAD = self.voc.index2word[self.voc.PAD_token]
+                UNK = self.voc.index2word[self.voc.UNK_token]                
                 for j in range( batch_size ): 
                     tokens_hyp = tokens_batch[:,j]
-                    tokens_ref = output[:,j]            
+                    tokens_ref = output[:,j]
                     
-                    decoded_hyp_words = [self.voc.index2word.get(token.item(), self.voc.index2word[ self.voc.UNK_token] ) for token in tokens_hyp] 
-                    decoded_hyp_words[:] = [x for x in decoded_hyp_words if not (x == self.voc.EOS_token or x == self.voc.PAD_token)]
+                    #decoded_hyp_words = [self.voc.index2word[ token.item() ] for token in tokens_hyp]
+                    decoded_hyp_words = [ self.voc.index2word.get( token.item(), UNK ) for token in tokens_hyp ] 
+                    decoded_hyp_words[:] = [x for x in decoded_hyp_words if not (x == EOS or x == PAD)]
                     all_hyp_words.append( decoded_hyp_words )
                     
-                    decoded_ref_words = [self.voc.index2word[ token.item() ] for token in tokens_ref]
-                    decoded_ref_words[:] = [x for x in decoded_ref_words if not (x == self.voc.EOS_token or x == self.voc.PAD_token)]
-                    
+                    #decoded_ref_words = [ self.voc.index2word[ token.item() ] for token in tokens_ref]
+                    decoded_ref_words = [self.voc.index2word.get( token.item(), UNK ) for token in tokens_ref ] 
+                    decoded_ref_words[:] = [x for x in decoded_ref_words if not (x == EOS or x == PAD)]                    
                     all_ref_words.append( decoded_ref_words )
-
-                print('>> ', all_ref_words[0] )
-                print('>> ', all_hyp_words[0] )
-
+                
+                all_ref_words = [ [ref] for ref in all_ref_words ]
                 bleu = corpus_bleu(all_ref_words, all_hyp_words) 
-                bleus.append(bleu)
-
-        bleu = np.stack( bleus, axis=-1 ).mean()
-        return  bleu
+                bleus.append( bleu )
+        
+        bleus = np.stack( bleus, axis=-1 ).mean()
+        return  bleus
 
 
     def __call__(self, x, lengths, max_target_len ):       

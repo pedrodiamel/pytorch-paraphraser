@@ -2,6 +2,7 @@
 DIR=$HOME/.datasets/txt
 mkdir $DIR
 echo $DIR
+
 echo '>> Download: para-nmt-50m'
 wget --header="Host: doc-0k-2o-docs.googleusercontent.com" \
 --header="User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.75 Safari/537.36" \
