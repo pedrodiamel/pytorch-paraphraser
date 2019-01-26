@@ -8,7 +8,7 @@ import random
 import torch
 import torch.nn as nn
 
-from .utils import (normalizeString, filterPairs, get_triplets, read_pairs )
+from .utils import (normalizeString, filterPairs, get_triplets, read_pairs, read_words, read_word2pairs )
 from .vocabulary import (Vocabulary, inputVar, outputVar )
 from .downloads import download_data
 

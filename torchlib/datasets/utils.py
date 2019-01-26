@@ -60,7 +60,7 @@ def get_pairs( word, types, n=5 ):
         #while np.any((a-b)==0): #aligning check
         while np.sum((a-b) == 0 )/b.shape[0] > 0.1: #aligning check
             random.shuffle(b) 
-        pairs += zip(Words[a],Words[b])
+        pairs += zip(word[a],word[b])
         #print(c, a,b)
     random.shuffle(pairs)
     return pairs
@@ -74,17 +74,15 @@ def read_pairs( pathname ):
     pairs = [[normalizeString(s) for s in l.split('\t')] for l in lines]    
     return pairs
 
-def read_word2pairs( pathname ):
-    db = read_words(pathname)
-    words, types = db[1],db[2]
-    return get_pairs( words, types )
+def read_word2pairs( pathname ):     
+    return get_pairs( *read_words(pathname) )
 
 
 def read_words( pathname ):
     '''read words dataset
     Format: type; word
     '''
-    db = pd.read_csv( pathname )
-    db = db.values
-    return db
+    data = pd.read_csv( pathname )
+    words, types = data['word'], data['type']
+    return words, types
 
