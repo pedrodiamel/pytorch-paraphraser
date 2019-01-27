@@ -70,7 +70,7 @@ class Vocabulary:
         # Reinitialize dictionaries
         self.word2index = {}
         self.word2count = {}
-        self.index2word = {PAD_token: "*", SOS_token: "<START>", EOS_token: "<END>", UNK_token: "UUUNKKK"}
+        self.index2word = {self.PAD_token: "*", self.SOS_token: "<START>", self.EOS_token: "<END>", self.UNK_token: "UUUNKKK"}
         self.num_words = 4 # Count default tokens
         
         for word in keep_words:

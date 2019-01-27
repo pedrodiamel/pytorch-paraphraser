@@ -1,5 +1,6 @@
 
 import os 
+import json
 import torch
 
 from torchlib.datasets.vocabulary import ( Vocabulary, indexesFromSentence )
@@ -24,8 +25,6 @@ def evaluate(net, voc, sentence, max_length):
     decoded_words = [voc.index2word.get(token.item(), UNK) for token in tokens] 
     return decoded_words
 
-
-
 def evaluateInput(net, voc, max_length):
     input_sentence = ''
     while(1):
@@ -46,29 +45,35 @@ def evaluateInput(net, voc, max_length):
         except KeyError:
             print("Error: Encountered unknown word.")
 
-
-
-
-# def arg_parser():
-#     """Arg parser"""    
-#     parser = ArgumentParser()
-#     parser.add_argument('data', metavar='DIR', help='paraphraser')
-#     return parser
+def arg_parser():
+    """Arg parser"""    
+    parser = ArgumentParser()
+    parser.add_argument('data', metavar='DIR', help='paraphraser')
+    parser.add_argument('--model', metavar='DIR', help='model configurate')
+    return parser
 
 def main():
+
+    parser = arg_parser();
+    args = parser.parse_args();
+    args = vars( args )
+
+    with open(args.model, "r" ) as f: 
+        modelconfig = json.load(f)
  
-    pathmodel      = 'out/netruns/nlp_nmt_maskll_adam_txt_000/models/model_best.pth.tar'
-    pathvocabulary = '~/.datasets/txt/para-nmt-50m-demo/ngram-word-concat-40.pickle'    
-    max_length     = 10
-    parallel       = False
-    no_cuda        = True
-    gpu            = 0
-    
-    sentence       = 'this is a difficult test !'
+    pathmodel      = modelconfig['pathmodel']
+    pathvocabulary = modelconfig['pathvocabulary']  
+    namemodel      = modelconfig['namemodel'] 
+    namevoc        = modelconfig['namevoc'] 
+    max_length     = modelconfig['max_length']
+    parallel       = modelconfig['parallel']
+    no_cuda        = modelconfig['no_cuda']
+    gpu            = modelconfig['gpu']    
+    sentence       = args.data
 
     # load vocabulary
     print('>> Load vocabulary ...')
-    pathvocabulary = os.path.expanduser( pathvocabulary )
+    pathvocabulary = os.path.join( os.path.expanduser( pathvocabulary ), namevoc )   
     voc = Vocabulary()
     voc.load_embeddings( pathvocabulary, type='emb' ) 
     print(">> Counted words:")
@@ -76,6 +81,7 @@ def main():
 
     # load model 
     print('>> Load model ...')
+    pathmodel = os.path.join( os.path.expanduser( pathmodel ), namemodel )
     network = NeuralNetNMT(
         no_cuda=no_cuda,
         parallel=parallel,
@@ -86,20 +92,17 @@ def main():
         raise ValueError('Error: model not load ...')
     print( network )
 
+    # evaluate
+    sentence = normalizeString(sentence)
+    decoded_words = evaluate(network, voc, sentence, max_length  )    
+    EOS = voc.index2word[voc.EOS_token]
+    PAD = voc.index2word[voc.PAD_token]
+    decoded_words[:] = [x for x in decoded_words if not (x == EOS or x == PAD)]
+    print('>> REUSLT: ')
+    print('>> input: ', sentence)
+    print('<< output: ',  ' '.join(decoded_words) )
 
-#     # evaluate
-#     sentence = normalizeString(sentence)
-#     decoded_words = evaluate(network, voc, sentence, max_length  )    
-#     EOS = voc.index2word[voc.EOS_token]
-#     PAD = voc.index2word[voc.PAD_token]
-#     decoded_words[:] = [x for x in decoded_words if not (x == EOS or x == PAD)]
-#     print('>> REUSLT: ')
-#     print('>> input: ', sentence)
-#     print('<< output: ',  ' '.join(decoded_words) )
-
-
-    evaluateInput(network, voc, max_length)
-
+    # evaluateInput(network, voc, max_length)
 
 
 if __name__ == '__main__':

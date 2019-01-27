@@ -1,0 +1,12 @@
+
+{
+  "pathmodel": "out/netruns/nlp_nmt_maskll_adam_txt_000/models",
+  "pathvocabulary": "~/.datasets/txt/para-nmt-50m-demo",    
+  "namemodel": "model_best.pth.tar",
+  "namevoc": "ngram-word-concat-40.pickle",
+  "max_length": 10,
+  "parallel": false,
+  "no_cuda": true,
+  "gpu": 0       
+    
+}
