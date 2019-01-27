@@ -59,12 +59,11 @@ class TxtDataset( object ):
         #create vocabulary
         voc = Vocabulary()
         #load vocabulary
-        voc.load_embeddings( self.pathvocabulary, type='emb' ) 
+        voc.load_embeddings( self.pathvocabulary, type='emb' )         
         print("Counted words:")
         print(voc.n_words)
         
-         
-
+        
         self.voc = voc
         self.data = data
         self.batch_size = batch_size if batch_size else len(data)
@@ -176,7 +175,15 @@ class TxtNMTDataset( TxtDataset ):
         max_length=10,
         ):
         super(TxtNMTDataset, self).__init__( pathname, namedataset, filedataset, filevocabulary, nbatch, batch_size, max_length)
-
+                
+        # add words
+        print('>> add new words on dataset')
+        for pair in self.data.pairs:
+            self.voc.addSentence(pair[0])
+            self.voc.addSentence(pair[1])
+        print("New counted words:")
+        print(self.voc.n_words)
+            
 
     def __len__(self):
         return self.nbatch #self.batch_size*
