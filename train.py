@@ -69,6 +69,20 @@ def arg_parser():
                         help='Parallel')
     parser.add_argument('--name-dataset', default='txt', type=str,
                         help='name dataset')
+    parser.add_argument('--attn_model', default='dot', type=str,
+                        help='attention model select ( dot, general, concat )')
+    parser.add_argument('--hidden_size',  default=500, type=int, metavar='N',
+                        help='hidden size (default: 500)')
+    parser.add_argument('--encoder_n_layers',  default=2, type=int, metavar='N',
+                        help='number encoder layers (default: 2)')
+    parser.add_argument('--decoder_n_layers',  default=2, type=int, metavar='N',
+                        help='number decoder layers (default: 2)')
+    parser.add_argument('--dropout', type=float, default=0.1, metavar='M',
+                        help='dropout (default: 0.1)')
+    parser.add_argument('--teacher_forcing_ratio', type=float, default=1.0, metavar='M',
+                        help='teacher forcing ratio (default: 1.0)')
+    parser.add_argument('--max_length',  default=10, type=int, metavar='N',
+                        help='max words length (default: 10)')
     return parser
 
 
@@ -78,14 +92,13 @@ def main():
     parser = arg_parser();
     args = parser.parse_args();
     random.seed( args.seed )
-    
-    attn_model='dot'
-    hidden_size=500 
-    encoder_n_layers=2 
-    decoder_n_layers=2
-    dropout=0.1
-    teacher_forcing_ratio=1.0
-    max_length=10
+    attn_model=args.attn_model 
+    hidden_size=args.hidden_size 
+    encoder_n_layers=args.encoder_n_layers  
+    decoder_n_layers=args.decoder_n_layers 
+    dropout=args.dropout 
+    teacher_forcing_ratio=args.teacher_forcing_ratio 
+    max_length=args.max_length 
 
     cudnn.benchmark = True
     

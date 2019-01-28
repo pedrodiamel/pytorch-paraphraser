@@ -21,6 +21,15 @@ SCHEDULER='step'
 SNAPSHOT=50
 EXP_NAME='nlp_'$ARCH'_'$LOSS'_'$OPT'_'$NAMEDATASET'_004'
 
+#NET CONFIGURATE
+ATTNMODEL='dot' #dot, general, concat
+HIDDENSIZE=500 
+ENCODER_N_LAYERS=2 
+DECODER_N_LAYERS=2
+DROPOUT=0.1
+TEACHER_FORCING_RATIO=1.0
+MAX_LENGTH=10
+
 
 rm -rf $PROJECT/$EXP_NAME/$EXP_NAME.log
 rm -rf $PROJECT/$EXP_NAME/
@@ -51,7 +60,16 @@ $DATA \
 --arch=$ARCH \
 --name-dataset=$NAMEDATASET \
 --finetuning \
+--attn_model=$ATTNMODEL \
+--hidden_size=$HIDDENSIZE \
+--encoder_n_layers=$ENCODER_N_LAYERS \
+--decoder_n_layers=$DECODER_N_LAYERS \
+--dropout=$DROPOUT \
+--teacher_forcing_ratio=$TEACHER_FORCING_RATIO \
+--max_length=$MAX_LENGTH \
 2>&1 | tee -a $PROJECT/$EXP_NAME/$EXP_NAME.log \
+
+
 
 
 #--parallel \
