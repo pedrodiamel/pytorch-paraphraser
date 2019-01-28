@@ -7,8 +7,8 @@ DATASET='para-nmt-50m-demo/para-nmt-50m-small.txt' #para-nmt-50m/para-nmt-50m.tx
 VOCFILE='para-nmt-50m-demo/ngram-word-concat-40.pickle'
 PROJECT='../out/netruns'
 EPOCHS=200
-NBATCH=20 #20, 1000
-BATCHSIZE=10 #10, 128
+NBATCH=500 #20, 1000
+BATCHSIZE=128 #10, 128
 LEARNING_RATE=0.0001
 MOMENTUM=0.9
 PRINT_FREQ=30
@@ -19,7 +19,7 @@ LOSS='maskll'
 OPT='adam'
 SCHEDULER='step'
 SNAPSHOT=50
-EXP_NAME='nlp_'$ARCH'_'$LOSS'_'$OPT'_'$NAMEDATASET'_000'
+EXP_NAME='nlp_'$ARCH'_'$LOSS'_'$OPT'_'$NAMEDATASET'_004'
 
 #NET CONFIGURATE
 ATTNMODEL='dot' #dot, general, concat

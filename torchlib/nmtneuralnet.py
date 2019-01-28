@@ -389,6 +389,7 @@ class NeuralNetNMT(NeuralNetAbstractNLP):
         # switch to evaluate mode
         self.encoder.eval()
         self.decoder.eval()
+        self.search.eval()
         
         with torch.no_grad():
             end = time.time()
@@ -475,14 +476,13 @@ class NeuralNetNMT(NeuralNetAbstractNLP):
         #   self.embedding = embedding
         #else:   
         #self.embedding = nn.Embedding.from_pretrained( torch.from_numpy( voc.embeddings ).float(),  freeze=False )       
-        
         #kw = {'embedding': self.embedding, 'pretrained': pretrained}
         #self.encoder = netmodels.__dict__[arch](**kw)        
         
         self.encoder   = attnet.EncoderRNN( hidden_size, self.embedding, encoder_n_layers, dropout )
         self.decoder   = attnet.LuongAttnDecoderRNN( attn_model, self.embedding, hidden_size, voc.n_words, decoder_n_layers, dropout )
         self.search    = attnet.GreedySearchDecoder( self.encoder, self.decoder, sos=voc.SOS_token, cuda=self.cuda )
-                
+        
         if self.cuda == True:
             self.encoder.cuda()
             self.decoder.cuda()
