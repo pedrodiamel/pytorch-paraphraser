@@ -48,8 +48,8 @@ def evaluateInput(net, voc, max_length):
 def arg_parser():
     """Arg parser"""    
     parser = ArgumentParser()
-    parser.add_argument('data', metavar='DIR', help='paraphraser')
-    parser.add_argument('--model', metavar='DIR', help='model configurate')
+#     parser.add_argument('data', metavar='DIR', help='paraphraser')
+    parser.add_argument('--modelconfig', metavar='DIR', help='model configurate')
     return parser
 
 def main():
@@ -58,7 +58,7 @@ def main():
     args = parser.parse_args();
     args = vars( args )
 
-    with open(args.model, "r" ) as f: 
+    with open(args['modelconfig'], "r" ) as f: 
         modelconfig = json.load(f)
  
     pathmodel      = modelconfig['pathmodel']
@@ -69,7 +69,7 @@ def main():
     parallel       = modelconfig['parallel']
     no_cuda        = modelconfig['no_cuda']
     gpu            = modelconfig['gpu']    
-    sentence       = args.data
+#     sentence       = args['data']
 
 #     # load vocabulary
 #     print('>> Load vocabulary ...')
@@ -87,23 +87,25 @@ def main():
         parallel=parallel,
         gpu=gpu
         )
-    voc = network.voc
+    
 
     if network.load( pathmodel ) is not True:
         raise ValueError('Error: model not load ...')
     print( network )
+    
+    voc = network.voc
 
-    # evaluate
-    sentence = normalizeString(sentence)
-    decoded_words = evaluate(network, voc, sentence, max_length  )    
-    EOS = voc.index2word[voc.EOS_token]
-    PAD = voc.index2word[voc.PAD_token]
-    decoded_words[:] = [x for x in decoded_words if not (x == EOS or x == PAD)]
-    print('>> REUSLT: ')
-    print('>> input: ', sentence)
-    print('<< output: ',  ' '.join(decoded_words) )
+#     # evaluate
+#     sentence = normalizeString(sentence)
+#     decoded_words = evaluate(network, voc, sentence, max_length  )    
+#     EOS = voc.index2word[voc.EOS_token]
+#     PAD = voc.index2word[voc.PAD_token]
+#     decoded_words[:] = [x for x in decoded_words if not (x == EOS or x == PAD)]
+#     print('>> REUSLT: ')
+#     print('>> input: ', sentence)
+#     print('<< output: ',  ' '.join(decoded_words) )
 
-    # evaluateInput(network, voc, max_length)
+    evaluateInput(network, voc, max_length)
 
 
 if __name__ == '__main__':
