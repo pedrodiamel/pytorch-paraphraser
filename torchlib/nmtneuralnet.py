@@ -433,7 +433,6 @@ class NeuralNetNMT(NeuralNetAbstractNLP):
         bleus = np.stack( bleus, axis=-1 ).mean()
         return  bleus
 
-
     def __call__(self, x, lengths, max_target_len ):       
         # switch to evaluate mode
         self.encoder.eval()

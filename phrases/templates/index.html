@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <!-- <title>Document</title> -->
+
+    <!-- CSS  -->
+    <link rel="stylesheet" href="https://bootswatch.com/4/superhero/bootstrap.css" media="screen">
+    <link rel="stylesheet" href="https://bootswatch.com/_assets/css/custom.min.css">
+</head>
+<body>
+
+<div class="jumbotron">
+
+
+<h1 class="display-3 text-center">Paraphraser Generation</h1>
+<p class="lead text-center">This project providers users the ability to do paraphrase generation for sentences through a clean and simple API.</p>
+<hr class="my-4">
+
+<!--  Input-->
+<div class="container">
+    <label class="control-label">Enter Your Text Below: </label>
+    <form action="{{ url_for('analyze')}}" method="POST" class="form-group mt-2 mt-md-0">
+        <textarea name="txtsentence" cols="3" rows="3" class="form-control"></textarea>
+        <br/>
+
+        <div class="container">
+        <div class="row">
+        <button type="reset"  class="btn btn-outline-success">CLEAR</button>
+        <button type="submit" name="btngreedy" value="greedy" class="btn btn-outline-primary">GREEDY</button> 
+        <button type="submit" name="btnsample" value="sample" class="btn btn-outline-primary">SAMPLE</button>    
+        <span class="input-group-text"> </span>
+        <input  type="text" name="txttemp" class="form-control" style="width: 60px;" value={{ temp }} >
+        <span class="input-group-text"></span>
+        </div>
+        </div>
+
+    </form>    
+</div>
+<br/>
+
+<!--  Output -->
+
+<div class="container"> 
+<!-- <div class="form-group">
+    <fieldset disabled="">
+        <label class="control-label">Generate Paraphrase Result: </label>
+        <p>{{ phrase }}</p>
+    </fieldset>
+</div> -->
+
+<div class="card text-white bg-primary" >
+    <!-- <div class="card-header">Header</div> -->
+    <div class="card-body">
+        <h4 class="card-title">Generate Paraphraser Result: </h4>
+        <p class="card-text">{{ phrase }}</p>
+    </div>
+</div>
+
+
+<!-- <p class="text-warning" ><b>Try adjusting the sampling temperature up and down. Different temperatures work better for different sentences!</b>  A higher sampling temperature will allow more diversity and variation in the generated sentences, at the cost of making less sense.  A lower sampling temperature will generate sentences that are closer in meaning to your input sentence, but will also result in less diversity and variation.</p> -->
+
+</div>
+</div>
+
+<!-- Footer -->
+<footer class="container text-center">
+        Email: <a href="mailto:pedrodiamel@gmail.com?subject=paraphraser">pedrodiamel@gmail.com</a>
+        &nbsp; | &nbsp;
+        Github: <a href="https://github.com/pedrodiamel/pytorch-paraphraser">pedrodiamel/pytorch-paraphraser</a>
+        <p>&copy; Moto 2018-2019</p>
+</footer>
+
+<!-- Scripts -->
+<script src="https://bootswatch.com/_vendor/jquery/dist/jquery.min.js"></script>
+<script src="https://bootswatch.com/_vendor/popper.js/dist/umd/popper.min.js"></script>
+<script src="https://bootswatch.com/_vendor/bootstrap/dist/js/bootstrap.min.js"></script>
+<script src="https://bootswatch.com/_assets/js/custom.js"></script>
+
+</body>
+</html>
