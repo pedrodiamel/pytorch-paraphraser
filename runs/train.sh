@@ -3,7 +3,7 @@
 # parameters
 DATA='~/.datasets/txt'
 NAMEDATASET='paranmt'
-DATASET='para-nmt-50m-demo/para-nmt-50m-small.txt' #para-nmt-50m/para-nmt-50m.txt; para-nmt-50m-demo/para-nmt-50m-small.txt
+DATASET='commandpairsext.txt' #commandpairsext.txt; para-nmt-50m/para-nmt-50m.txt; para-nmt-50m-demo/para-nmt-50m-small.txt
 VOCFILE='para-nmt-50m-demo/ngram-word-concat-40.pickle'
 PROJECT='../out/netruns'
 EPOCHS=200
