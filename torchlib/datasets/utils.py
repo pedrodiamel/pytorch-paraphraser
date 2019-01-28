@@ -144,7 +144,7 @@ class txtCmdPairsProvide( txtCmdProvide ):
         filter=True,
         ):
         super(txtCmdPairsProvide, self).__init__( pathname, filter )
-        self.pairs = get_pairs(self.phrases, self.classes, n=10 )
+        self.pairs = get_pairs(self.phrases, self.classes, n=50 )
 
     def __len__(self):
         return len( self.pairs )

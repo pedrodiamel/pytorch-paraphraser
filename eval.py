@@ -39,7 +39,6 @@ def main():
         batch_size=batch_size,
         max_length=max_length,
     )
-
         
     print('Dataset')
     print('Size: ', len(dataset))
@@ -52,7 +51,7 @@ def main():
         gpu=gpu
         )
 
-    if network.load( pathmodel, dataset.voc ) is not True:
+    if network.load( pathmodel ) is not True:
         raise ValueError('Error: model not load ...')
     
     print( 'load NeuralNet ... ' )
