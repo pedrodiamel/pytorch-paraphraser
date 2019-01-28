@@ -152,6 +152,8 @@ class NeuralNetNMT(NeuralNetAbstractNLP):
         # Determine if we are using teacher forcing this iteration
         use_teacher_forcing = True if random.random() < teacher_forcing_ratio else False
 
+
+
         # Forward batch of sequences through decoder one time step at a time
         if use_teacher_forcing:
             for t in range(max_target_len):
@@ -213,8 +215,7 @@ class NeuralNetNMT(NeuralNetAbstractNLP):
                 self.teacher_forcing_ratio, 
                 self.clip
                 )
-            #loss = loss/n_totals
-              
+                          
             # optimizer
             # Zero gradients
             self.encoder_optimizer.zero_grad()
