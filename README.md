@@ -5,10 +5,11 @@ This project providers users the ability to do paraphrase generation for sentenc
 ## TODO
 
 - [X] Training framework (train|visualization|test)
+- [X] Module for test/api (UI Flask module)
+- [ ] Manifold implementation
 - [ ] Pip installable package
-- [ ] Module for test/api (UI Flask module)
 - [ ] Docker configurate packaging
-- [ ] 
+- [ ] Readme and doc
 
 ## Datasets
 
