@@ -20,9 +20,9 @@ This project providers users the ability to do paraphrase generation for sentenc
 
 ## Models
 
-- Attention
+- Attention NMT
 - Embedded Representation
-
+- Manifold
 
 ## Reference
 
