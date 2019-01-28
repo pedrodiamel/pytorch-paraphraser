@@ -605,11 +605,11 @@ class NeuralNetNMT(NeuralNetAbstractNLP):
                 start_epoch = checkpoint['epoch']
                 prec = checkpoint['prec']
                 encoder.load_state_dict(checkpoint['en'])
-                decoder.load_state_dict(checkpoint['de'])
-                
+                decoder.load_state_dict(checkpoint['de'])                
                 self.encoder_optimizer.load_state_dict(checkpoint['en_optimizer'])
                 self.decoder_optimizer.load_state_dict(checkpoint['de_optimizer'])                    
-                self.embedding = encoder.embedding
+                self.embedding = encoder.embedding                
+                self.voc = checkpoint['voc']
 
                 print("=> loaded checkpoint '{}' (epoch {})"
                     .format(resume, checkpoint['epoch']))
@@ -638,7 +638,8 @@ class NeuralNetNMT(NeuralNetAbstractNLP):
                 'en': self.encoder.state_dict(),
                 'de': self.decoder.state_dict(),
                 'en_optimizer' : self.encoder_optimizer.state_dict(),
-                'de_optimizer' : self.decoder_optimizer.state_dict(),
+                'de_optimizer' : self.decoder_optimizer.state_dict(),                
+                'voc': self.voc,
 
             }, 
             is_best,
@@ -646,7 +647,7 @@ class NeuralNetNMT(NeuralNetAbstractNLP):
             filename,
             )
    
-    def load(self, pathnamemodel, voc):
+    def load(self, pathnamemodel ):
         bload = False
         if pathnamemodel:
             if os.path.isfile(pathnamemodel):
@@ -654,7 +655,7 @@ class NeuralNetNMT(NeuralNetAbstractNLP):
                 checkpoint = torch.load( pathnamemodel ) if self.cuda else torch.load( pathnamemodel, map_location=lambda storage, loc: storage )
                 self._create_model( 
                     checkpoint['arch'], 
-                    voc, 
+                    checkpoint['voc'], # checkpoint['voc'], voc  <<<----
                     False, 
                     checkpoint['attn_model'], 
                     checkpoint['hidden_size'], 
@@ -663,7 +664,8 @@ class NeuralNetNMT(NeuralNetAbstractNLP):
                     )                
                 self.encoder.load_state_dict( checkpoint['en'] )
                 self.decoder.load_state_dict( checkpoint['de'] )
-                self.embedding = self.encoder.embedding
+                self.embedding = self.encoder.embedding                
+                
                 print("=> loaded checkpoint for {} arch!".format(checkpoint['arch']))
                 bload = True
 

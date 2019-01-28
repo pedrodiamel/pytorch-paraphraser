@@ -15,7 +15,7 @@ def main():
     from phrases.webapp import app, net
 
     net.run(pathconfigurate='modelsconfig.json' )
-    app.run(debug=True, port=3000)
+    app.run(debug=False, port=3000)
 
 
 if __name__ == '__main__':

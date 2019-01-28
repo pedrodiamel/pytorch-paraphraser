@@ -20,8 +20,8 @@ def analyze():
         # code here
         phrase = sentence
         if 'btngreedy' in request.form:
-            phrase = net(phrase)
-
+            phrase, score = net( phrase ) 
+            phrase = ' '.join(phrase) 
 
         elif 'btnsample' in request.form:
             phrase += ' --> sample '
@@ -34,5 +34,9 @@ def api_tokens(sentence):
 	# Analysis
     # TODO January 27, 2019: paraphrase( sentence )
     # code here
-    phrase = net(sentence)
+    
+    phrase = sentence 
+    phrase, score = net( phrase )
+    phrase = ' '.join(phrase)     
+    
     return phrase

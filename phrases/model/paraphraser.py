@@ -30,6 +30,8 @@ class NeuralNetNMT( object ):
         self.parallel = not no_cuda and parallel
         if self.cuda:
             torch.cuda.set_device( gpu )
+            
+        self.gpu = gpu
         self.encoder=None
         self.decoder=None
         self.embedding=None
@@ -62,19 +64,21 @@ class NeuralNetNMT( object ):
         self.encoder_n_layers = encoder_n_layers
         self.decoder_n_layers = decoder_n_layers
         ## embedded 
-        self.embedding = nn.Embedding( voc.n_words, hidden_size )   
+        self.embedding = nn.Embedding( voc.n_words, hidden_size )   #74667, voc.n_words
         ## models
         # TODO January 28, 2019: select arch 
         self.encoder   = EncoderRNN( hidden_size, self.embedding, encoder_n_layers )
-        self.decoder   = LuongAttnDecoderRNN( attn_model, self.embedding, hidden_size, voc.n_words, decoder_n_layers )
+        self.decoder   = LuongAttnDecoderRNN( attn_model, self.embedding, hidden_size, voc.n_words, decoder_n_layers ) #voc.n_words
         self.search    = GreedySearchDecoder( self.encoder, self.decoder, sos=voc.SOS_token, cuda=self.cuda )
         
         if self.cuda == True:
-            self.encoder.cuda()
-            self.decoder.cuda()
+            self.encoder.cuda( self.gpu )
+            self.decoder.cuda( self.gpu )            
         if self.parallel == True and self.cuda == True:
             self.encoder = nn.DataParallel(self.encoder, device_ids=range( torch.cuda.device_count() ))
             self.decoder = nn.DataParallel(self.decoder, device_ids=range( torch.cuda.device_count() ))
+            
+            
 
  
     def __call__(self, sentence, max_length):
@@ -104,7 +108,7 @@ class NeuralNetNMT( object ):
         decoded_words[:] = [x for x in decoded_words if not (x == EOS or x == PAD)]
         return decoded_words, scores
 
-    def load(self, pathnamemodel, voc):
+    def load(self, pathnamemodel ):
         bload = False
         if pathnamemodel:
             if os.path.isfile(pathnamemodel):
@@ -112,7 +116,7 @@ class NeuralNetNMT( object ):
                 checkpoint = torch.load( pathnamemodel ) if self.cuda else torch.load( pathnamemodel, map_location=lambda storage, loc: storage )
                 self.create( 
                     checkpoint['arch'], 
-                    voc, 
+                    checkpoint['voc'], #checkpoint['voc'], voc <<<----
                     checkpoint['attn_model'], 
                     checkpoint['hidden_size'], 
                     checkpoint['encoder_n_layers'], 
@@ -155,42 +159,42 @@ class Paraphrases( object ):
             modelconfig = json.load(f)
 
         pathmodel      = modelconfig['pathmodel']
-        pathvocabulary = modelconfig['pathvocabulary']  
+#         pathvocabulary = modelconfig['pathvocabulary']
+#         namevoc        = modelconfig['namevoc'] 
         namemodel      = modelconfig['namemodel'] 
-        namevoc        = modelconfig['namevoc'] 
         max_length     = modelconfig['max_length']
         parallel       = modelconfig['parallel']
         no_cuda        = modelconfig['no_cuda']
         gpu            = modelconfig['gpu']    
         
-        # load vocabulary
-        print('>> Load vocabulary ...')
-        pathvocabulary = os.path.join( os.path.expanduser( pathvocabulary ), namevoc )   
-        voc = Vocabulary()
-        voc.load_embeddings( pathvocabulary, type='emb' ) 
-        print(">> Counted words:")
-        print(voc.n_words)
+#         # load vocabulary
+#         print('>> Load vocabulary ...')
+#         pathvocabulary = os.path.join( os.path.expanduser( pathvocabulary ), namevoc )   
+#         voc = Vocabulary()
+#         voc.load_embeddings( pathvocabulary, type='emb' ) 
+#         print(">> Counted words:")
+#         print(voc.n_words)
 
         # load model 
         print('>> Load model ...')
-        pathmodel = os.path.join( os.path.expanduser( pathmodel ), namemodel )
+        pathmodel = os.path.join( os.path.expanduser( pathmodel ), namemodel )        
         network = NeuralNetNMT(
             no_cuda=no_cuda,
             parallel=parallel,
             gpu=gpu
             )
 
-        if network.load( pathmodel, voc ) is not True:
+        if network.load( pathmodel ) is not True:
             raise ValueError('Error: model not load ...')
         print( network )
 
         self.max_length = max_length
         self.network = network
-        self.voc = voc
+        
 
 
     def __call__(self, sentence):
         # evaluate        
-        decoded_words, score = self.network( self.voc, sentence, self.max_length  )    
+        decoded_words, score = self.network( sentence, self.max_length  )    
         return decoded_words, score
 
