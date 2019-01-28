@@ -153,7 +153,6 @@ class NeuralNetNMT(NeuralNetAbstractNLP):
         use_teacher_forcing = True if random.random() < teacher_forcing_ratio else False
 
 
-
         # Forward batch of sequences through decoder one time step at a time
         if use_teacher_forcing:
             for t in range(max_target_len):
