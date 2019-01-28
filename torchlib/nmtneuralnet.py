@@ -152,6 +152,8 @@ class NeuralNetNMT(NeuralNetAbstractNLP):
         # Determine if we are using teacher forcing this iteration
         use_teacher_forcing = True if random.random() < teacher_forcing_ratio else False
 
+        all_tokens = []
+        all_scores = []
 
         # Forward batch of sequences through decoder one time step at a time
         if use_teacher_forcing:
@@ -161,6 +163,14 @@ class NeuralNetNMT(NeuralNetAbstractNLP):
                 )
                 # Teacher forcing: next input is current target
                 decoder_input = target_variable[t].view(1, -1)
+
+                #record token and score
+                yp, yv = torch.max(decoder_output, dim=1)
+                yv = torch.unsqueeze(yv, 0)  
+                yp = torch.unsqueeze(yp, 0)
+                all_tokens.append( yv )
+                all_scores.append( yp ) 
+
                 # Calculate and accumulate loss
                 mask_loss, nTotal =  self.criterion(decoder_output, target_variable[t], mask[t])
                 loss += mask_loss
@@ -175,12 +185,22 @@ class NeuralNetNMT(NeuralNetAbstractNLP):
                 decoder_input = torch.LongTensor([[topi[i][0] for i in range(batch_size)]])
                 decoder_input = decoder_input.cuda() if self.cuda else decoder_input
 
+                #record token and score
+                yp, yv = torch.max(decoder_output, dim=1)
+                yv = torch.unsqueeze(yv, 0)  
+                yp = torch.unsqueeze(yp, 0)
+                all_tokens.append( yv )
+                all_scores.append( yp ) 
+
                 # Calculate and accumulate loss
                 mask_loss, nTotal = self.criterion(decoder_output, target_variable[t], mask[t])
                 loss += mask_loss
                 n_totals += nTotal
 
-        return loss, n_totals
+        all_tokens = torch.cat( all_tokens, dim=0 )
+        all_scores = torch.cat( all_scores, dim=0 )
+
+        return loss, n_totals, all_tokens, all_scores
     
     def training(self, dataset, epoch=0):
 
@@ -208,7 +228,8 @@ class NeuralNetNMT(NeuralNetAbstractNLP):
                 mask = mask.cuda()
                 
             # fit (forward)
-            loss, n_totals = self._forward( inp, lengths, output, 
+            loss, n_totals, tokens_batch, scores_batch = self._forward( 
+                inp, lengths, output, 
                 mask, max_target_len, 
                 batch_size, 
                 self.teacher_forcing_ratio, 
@@ -231,10 +252,30 @@ class NeuralNetNMT(NeuralNetAbstractNLP):
             self.encoder_optimizer.step()
             self.decoder_optimizer.step()
 
+            all_hyp_words = []
+            all_ref_words = []
+            EOS = self.voc.index2word[self.voc.EOS_token]
+            PAD = self.voc.index2word[self.voc.PAD_token]
+            UNK = self.voc.index2word[self.voc.UNK_token]                
+            for j in range( batch_size ): 
+                tokens_hyp = tokens_batch[:,j]
+                tokens_ref = output[:,j]                
+                #decoded_hyp_words = [self.voc.index2word[ token.item() ] for token in tokens_hyp]
+                decoded_hyp_words = [ self.voc.index2word.get( token.item(), UNK ) for token in tokens_hyp ] 
+                decoded_hyp_words[:] = [x for x in decoded_hyp_words if not (x == EOS or x == PAD)]
+                all_hyp_words.append( decoded_hyp_words )                
+                #decoded_ref_words = [ self.voc.index2word[ token.item() ] for token in tokens_ref]
+                decoded_ref_words = [self.voc.index2word.get( token.item(), UNK ) for token in tokens_ref ] 
+                decoded_ref_words[:] = [x for x in decoded_ref_words if not (x == EOS or x == PAD)]                    
+                all_ref_words.append( decoded_ref_words )
+
+            all_ref_words = [ [ref] for ref in all_ref_words ]
+            blue = corpus_bleu(all_ref_words, all_hyp_words) 
+
             # update
             self.logger_train.update(
                 {'loss': loss.data[0] },
-                {'bleu': 0 },  
+                {'bleu': blue },  
                 batch_size,
                 )
             
@@ -269,7 +310,7 @@ class NeuralNetNMT(NeuralNetAbstractNLP):
                     mask = mask.cuda()
                                     
                 # fit (forward)
-                loss, n_totals = self._forward( 
+                loss, n_totals, tokens_batch, scores_batch = self._forward( 
                     inp, lengths, output, 
                     mask, max_target_len, 
                     batch_size, 
@@ -277,10 +318,7 @@ class NeuralNetNMT(NeuralNetAbstractNLP):
                     self.clip
                     )
                 loss = loss/n_totals
-    
-                # metrics accuracy                      
-                tokens_batch, scores_batch = self.search( inp , lengths, max_target_len, batch_size )
-                
+                    
                 all_hyp_words = []
                 all_ref_words = []
                 EOS = self.voc.index2word[self.voc.EOS_token]
