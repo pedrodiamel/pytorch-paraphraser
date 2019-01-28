@@ -36,11 +36,9 @@ This project providers users the ability to do paraphrase generation for sentenc
 - https://arxiv.org/pdf/1901.02998.pdf
 - https://arxiv.org/pdf/1804.06059.pdf
 
-
 ## Repos
 
 - https://github.com/kefirski?tab=repositories
 - https://github.com/jhclark/multeval
 - https://github.com/vsuthichai/paraphraser
 - https://github.com/jwieting/para-nmt-50m
-
