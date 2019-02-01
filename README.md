@@ -5,6 +5,7 @@ This project providers users the ability to do paraphrase generation for sentenc
 ## TODO
 
 - [X] Training framework (train|visualization|test)
+- [X] Evaluate methods
 - [X] Module for test/api (UI Flask module)
 - [ ] Manifold implementation
 - [ ] Pip installable package
@@ -16,6 +17,7 @@ This project providers users the ability to do paraphrase generation for sentenc
 - [para-nmt-5m](http://www.cs.cmu.edu/~jwieting/)
 - [Quora]( https://data.quora.com/First-Quora-Dataset-Release-Question-Pairs)
 - [snli](https://nlp.stanford.edu/projects/snli/)
+- [PPDB](http://paraphrase.org/#/download)
 - Semeval
 
 ## Models
@@ -23,6 +25,17 @@ This project providers users the ability to do paraphrase generation for sentenc
 - Attention NMT
 - Embedded Representation
 - Manifold
+
+## Results 
+
+| Server   | Name     | Dataset    | Bleu      | Description                    |
+|---------:|---------:|:----------:|:---------:|:-------------------------------|
+| @Moto    | AttNMT   | CMDS       | 0.7163    | Train: DB(para-nmt-5m+cmd)     |
+| @Moto    | AttNMT   | CMDS+G     | 0.1351    | Train: DB(para-nmt-5m+cmd)     |
+
+
+
+
 
 ## Reference
 

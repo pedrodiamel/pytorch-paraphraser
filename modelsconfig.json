@@ -1,6 +1,6 @@
 
 {
-  "pathmodel": "/home/fernandez/code/github/pytorch-paraphraser/out/netruns/nlp_nmt_maskll_adam_paranmt_004/models",
+  "pathmodel": "/media/user/DEAE1704AE16D4BD/Documents/PEDRO/code/pytorch-paraphraser/out/netruns/nlp_nmt_maskll_adam_paranmt_004/models",
   "pathvocabulary": "~/.datasets/txt/para-nmt-50m-demo",    
   "namemodel": "model_best.pth.tar",
   "namevoc": "ngram-word-concat-40.pickle",

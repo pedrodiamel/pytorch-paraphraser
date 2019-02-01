@@ -63,21 +63,12 @@ def main():
  
     pathmodel      = modelconfig['pathmodel']
     namemodel      = modelconfig['namemodel']
-#     pathvocabulary = modelconfig['pathvocabulary']  
-#     namevoc        = modelconfig['namevoc'] 
     max_length     = modelconfig['max_length']
     parallel       = modelconfig['parallel']
     no_cuda        = modelconfig['no_cuda']
     gpu            = modelconfig['gpu']    
 #     sentence       = args['data']
 
-#     # load vocabulary
-#     print('>> Load vocabulary ...')
-#     pathvocabulary = os.path.join( os.path.expanduser( pathvocabulary ), namevoc )   
-#     voc = Vocabulary()
-#     voc.load_embeddings( pathvocabulary, type='emb' ) 
-#     print(">> Counted words:")
-#     print(voc.n_words)
 
     # load model 
     print('>> Load model ...')
@@ -88,7 +79,6 @@ def main():
         gpu=gpu
         )
     
-
     if network.load( pathmodel ) is not True:
         raise ValueError('Error: model not load ...')
     print( network )

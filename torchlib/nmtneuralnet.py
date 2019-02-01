@@ -95,7 +95,7 @@ class NeuralNetNMT(NeuralNetAbstractNLP):
 
 
         cfg_opt= { 'momentum':0.9, 'weight_decay':5e-4 } 
-        cfg_scheduler= { 'step_size':100, 'gamma':0.1  }
+        cfg_scheduler= { 'step_size':200, 'gamma':0.1  }
         cfg_model = {
             'attn_model': attn_model, 
             'hidden_size': hidden_size, 
