@@ -112,8 +112,8 @@ def main():
     # training dataset
     train_dataset = TxtNMTDataset(
         pathname=args.data, 
-        namedataset='cmds', #'cmds', args.namedataset,
-        filedataset='dbcommand.csv', #'dbcommand.csv', args.dataset,
+        namedataset=args.namedataset, #'cmds', args.namedataset,
+        filedataset=args.dataset, #'dbcommand.csv', args.dataset,
         filevocabulary=args.vocabulary, 
         nbatch=args.nbatch,
         batch_size=args.batch_size,
@@ -122,8 +122,8 @@ def main():
     
     val_dataset = TxtNMTDataset(
         pathname=args.data, 
-        namedataset='cmds', #'cmds', args.namedataset,
-        filedataset='dbcommand.csv', #'dbcommand.csv', args.dataset,
+        namedataset=args.namedataset, #'cmds', args.namedataset,
+        filedataset=args.dataset, #'dbcommand.csv', args.dataset,
         filevocabulary=args.vocabulary, 
         nbatch=100, #args.nbatch,
         batch_size=args.batch_size,
