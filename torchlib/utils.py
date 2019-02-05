@@ -12,10 +12,12 @@ warnings.filterwarnings("ignore")
 
 def save_checkpoint(state, is_best, path, filename='checkpoint.pth.tar'):
     """Saves checkpoint to disk"""
-    filename = os.path.join(path, filename)
+    filename = os.path.join(path, 'model_best.pth.tar')
     torch.save(state, filename)
-    if is_best:
-        shutil.copyfile(filename, os.path.join(path, 'model_best.pth.tar'))
+
+    #torch.save(state, filename)
+    #if is_best:
+    #    shutil.copyfile(filename, os.path.join(path, 'model_best.pth.tar'))
 
 def resumecheckpoint(resume, net, optimizer):
     """Optionally resume from a checkpoint"""

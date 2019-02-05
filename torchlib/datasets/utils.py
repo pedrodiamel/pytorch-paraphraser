@@ -7,7 +7,7 @@ import re
 import random
 import numpy as np
 import pandas as pd
-
+from tqdm import tqdm
 
 # Turn a Unicode string to plain ASCII, thunicodedata
 # http://stackoverflow.com/a/518232/280942unicodedata
@@ -99,12 +99,23 @@ class txtParaNmt50mProvide( object ):
     
     def load( self, pathname ):
         print("Reading lines...")
-        # Read the file and split into lines
-        lines = open(pathname, encoding='utf-8').\
-            read().strip().split('\n')    
-        # Split every line into pairs and normalize
-        pairs = [[normalizeString(s) for s in l.split('\t')] for l in lines]    
+        # # Read the file and split into lines
+        # lines = open(pathname, encoding='utf-8').\
+        #     read().strip().split('\n')    
+        # # Split every line into pairs and normalize
+        # pairs = [[normalizeString(s) for s in l.split('\t')] for l in lines]    
+        
+        # Read line to line for large dataset soport
+        pairs = []
+        with open(pathname, encoding='utf-8') as f: 
+            for line in tqdm(f): 
+                pair = [ normalizeString( s ) for s in line.split('\t') ]
+                if not filterPair( pair, max_length=10 ):
+                    continue
+                pairs += [pair]
+
         return pairs
+
     def filter(self, max_length=10):
         self.pairs = filterPairs( self.pairs, max_length )
 
@@ -144,7 +155,7 @@ class txtCmdPairsProvide( txtCmdProvide ):
         filter=True,
         ):
         super(txtCmdPairsProvide, self).__init__( pathname, filter )
-        self.pairs = get_pairs(self.phrases, self.classes, n=10 )
+        self.pairs = get_pairs(self.phrases, self.classes, n=50 )
 
     def __len__(self):
         return len( self.pairs )

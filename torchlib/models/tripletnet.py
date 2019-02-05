@@ -59,7 +59,7 @@ class EncoderRNNAvg(nn.Module):
 
     def forward(self, input_seq, input_mask, hidden=None):        
         # Calculate length
-        input_lengths = input_mask.sum(dim=0) #+ 1
+        input_lengths = input_mask.sum(dim=0)  
         input_lengths, ind = torch.sort(input_lengths, descending=True  )
         input_seq = input_seq[ :,  ind ]     
         # Convert word indexes to embeddings
@@ -71,7 +71,7 @@ class EncoderRNNAvg(nn.Module):
         # Unpack padding
         outputs, _ = torch.nn.utils.rnn.pad_packed_sequence(outputs)
         # Sum bidirectional GRU outputs
-        #outputs = outputs[:, :, :self.hidden_size] + outputs[:, : ,self.hidden_size:]
+        outputs = outputs[:, :, :self.hidden_size] + outputs[:, : ,self.hidden_size:]
         outputs[ :, ind, : ] = outputs
         outputs = self.avg( outputs, input_mask )
         return outputs
@@ -90,3 +90,4 @@ def encoder_rnn_avg(pretrained=False, **kwargs):
     if pretrained:
         pass
     return model
+

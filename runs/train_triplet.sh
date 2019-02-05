@@ -2,9 +2,9 @@
 
 # parameters
 DATA='~/.datasets/txt'
+NAMEDATASET='paranmt'
 DATASET='para-nmt-50m-demo/para-nmt-50m-small.txt'
 VOCFILE='para-nmt-50m-demo/ngram-word-concat-40.pickle'
-NAMEDATASET='txt'
 PROJECT='../out/netruns'
 EPOCHS=300
 NBATCH=500
@@ -14,7 +14,7 @@ MOMENTUM=0.9
 PRINT_FREQ=50
 RESUME='chk000000.pth.tar'
 GPU=1
-ARCH='encoder_rnn_avg' #encoder_ave, encoder_rnn
+ARCH='encoder_rnn_avg' #encoder_avg, encoder_rnn_avg
 LOSS='tripletloss'
 OPT='adam'
 SCHEDULER='step'
@@ -34,6 +34,7 @@ $DATA \
 --project=$PROJECT \
 --vocabulary=$VOCFILE \
 --dataset=$DATASET \
+--namedataset=$NAMEDATASET \
 --name=$EXP_NAME \
 --epochs=$EPOCHS \
 --nbatch=$NBATCH \

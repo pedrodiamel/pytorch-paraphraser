@@ -89,8 +89,8 @@ def arg_parser():
 def main():
     
     # parameters
-    parser = arg_parser();
-    args = parser.parse_args();
+    parser = arg_parser()
+    args = parser.parse_args()
     random.seed( args.seed )
     attn_model=args.attn_model 
     hidden_size=args.hidden_size 

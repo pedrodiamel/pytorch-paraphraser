@@ -17,10 +17,10 @@ def main():
     
     # configurate 
     pathname       = '~/.datasets/txt'
-    namedataset    = 'paranmt'
-    pathdata       = 'para-nmt-50m-demo/para-nmt-50m-small.txt'
+    namedataset    = 'cmds' #cmds, paranmt,
+    pathdata       = 'dbcommand.csv' #dbcommand.csv; commandpairsext.txt; para-nmt-50m/para-nmt-50m.txt; para-nmt-50m-demo/para-nmt-50m-small.txt 
     pathvocabulary = 'para-nmt-50m-demo/ngram-word-concat-40.pickle'
-    pathmodel      = 'out/netruns/nlp_nmt_maskll_adam_txt_000/models/model_best.pth.tar'
+    pathmodel      = 'out/netruns/nlp_nmt_maskll_adam_paranmt_004/models/model_best.pth.tar'
     nbatch         = 50 
     batch_size     = 100
     max_length     = 10
@@ -39,7 +39,6 @@ def main():
         batch_size=batch_size,
         max_length=max_length,
     )
-
         
     print('Dataset')
     print('Size: ', len(dataset))
@@ -52,7 +51,7 @@ def main():
         gpu=gpu
         )
 
-    if network.load( pathmodel, dataset.voc ) is not True:
+    if network.load( pathmodel ) is not True:
         raise ValueError('Error: model not load ...')
     
     print( 'load NeuralNet ... ' )

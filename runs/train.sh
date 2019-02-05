@@ -3,12 +3,12 @@
 # parameters
 DATA='~/.datasets/txt'
 NAMEDATASET='paranmt'
-DATASET='para-nmt-50m/para-nmt-50m.txt' #para-nmt-50m/para-nmt-50m.txt; para-nmt-50m-demo/para-nmt-50m-small.txt
+DATASET='commandpairsext.txt' #commandpairsext.txt; para-nmt-50m/para-nmt-50m.txt; para-nmt-50m-demo/para-nmt-50m-small.txt
 VOCFILE='para-nmt-50m-demo/ngram-word-concat-40.pickle'
 PROJECT='../out/netruns'
-EPOCHS=200
-NBATCH=1000 #20, 1000
-BATCHSIZE=64 #10, 128
+EPOCHS=1000
+NBATCH=500 #20, 1000
+BATCHSIZE=128 #10, 128
 LEARNING_RATE=0.0001
 MOMENTUM=0.9
 PRINT_FREQ=30
@@ -18,14 +18,15 @@ ARCH='nmt' #
 LOSS='maskll'
 OPT='adam'
 SCHEDULER='step'
-SNAPSHOT=100
-EXP_NAME='nlp_'$ARCH'_'$LOSS'_'$OPT'_'$NAMEDATASET'_004'
+SNAPSHOT=50
+EXP_NAME='nlp_'$ARCH'_'$LOSS'_'$OPT'_'$NAMEDATASET'_BIG_005'
+
 
 #NET CONFIGURATE
 ATTNMODEL='dot' #dot, general, concat
 HIDDENSIZE=500 
-ENCODER_N_LAYERS=2 
-DECODER_N_LAYERS=2
+ENCODER_N_LAYERS=4 
+DECODER_N_LAYERS=4
 DROPOUT=0.1
 TEACHER_FORCING_RATIO=1.0
 MAX_LENGTH=10

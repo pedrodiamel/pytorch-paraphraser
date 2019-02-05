@@ -28,24 +28,28 @@ class TestDataset( unittest.TestCase ):
 
     def test_triplet(self):
 
-        pathname = '~/.datasets/txt'
-        pathfile = 'para-nmt-50m-demo/para-nmt-50m-small.txt'
-        pathvocabulary = 'para-nmt-50m-demo/ngram-word-concat-40.pickle'
-        nbatch = 5
-        batch_size = 10
+        pathname         = '~/.datasets/txt'
+        namedataset      = 'paranmt'
+        filedataset      = 'para-nmt-50m-demo/para-nmt-50m-small.txt'
+        filevocabulary   = 'para-nmt-50m-demo/ngram-word-concat-40.pickle'
+        nbatch           = 5
+        batch_size       = 10
 
         pathname = os.path.expanduser(pathname)
-        pathfile = os.path.expanduser(pathfile)
-        pathvocabulary = os.path.expanduser(pathvocabulary)
+        filedataset = os.path.expanduser(filedataset)
+        filevocabulary = os.path.expanduser(filevocabulary)
 
         data = dataset.TxtTripletDataset( 
             pathname,  
-            pathfile,            
-            pathvocabulary,
+            namedataset,
+            filedataset,            
+            filevocabulary,
             nbatch=nbatch,
             batch_size=batch_size,
+            max_length=10,
+
         )
-        
+        print('load datasets, size: ', len(data))
         batches = data.getbatch()
         s1, s1_mask, s1_max_len, s2, s2_mask, s2_max_len, t1, t1_mask, t1_max_len = batches
 
