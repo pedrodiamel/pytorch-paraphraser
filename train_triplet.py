@@ -27,6 +27,8 @@ def arg_parser():
                         help='(default: none)')
     parser.add_argument('--dataset', type=str, metavar='NAME',
                         help='(default: none)')
+    parser.add_argument('--namedataset', type=str, metavar='NAME',
+                        help='(default: none)')
     parser.add_argument('--no-cuda', action='store_true', default=False,
                         help='enables CUDA training')
     parser.add_argument('-g', '--gpu', default=0, type=int, metavar='N',
@@ -87,6 +89,7 @@ def main():
     args = parser.parse_args();
     random.seed( args.seed )
     cudnn.benchmark = True
+    max_length=10 #args.max_length 
     
     print('Baseline nlp paragrap paraphrase {}!!!'.format(datetime.datetime.now()))
     print('\nArgs:')
@@ -96,19 +99,31 @@ def main():
     
     # datasets
     # training dataset
-    dataset = TxtTripletDataset(
+    train_dataset = TxtTripletDataset(
         pathname=args.data, 
+        namedataset=args.namedataset,        
         filedataset=args.dataset,
         filevocabulary=args.vocabulary, 
         nbatch=args.nbatch,
-        batch_size=args.batch_size
+        batch_size=args.batch_size,
+        max_length=max_length
     )
-        
+
+    # validation dataset
+    val_dataset = TxtTripletDataset(
+        pathname=args.data, 
+        namedataset=args.namedataset,        
+        filedataset=args.dataset,
+        filevocabulary=args.vocabulary, 
+        nbatch=100, #args.nbatch,
+        batch_size=args.batch_size,
+        max_length=max_length
+    )
+
         
     print('Load datset')
-    print( len(dataset) )
-    #print('Train: ', len(train_data))
-    #print('Val: ', len(val_data))
+    print('Train: ', len(train_dataset))
+    print('Val: ', len(val_dataset))
 
 
     network = NeuralNetTripletNLP(
@@ -123,7 +138,7 @@ def main():
 
     network.create( 
         arch=args.arch, 
-        voc=dataset.voc,
+        voc=train_dataset.voc,
         loss=args.loss, 
         lr=args.lr, 
         momentum=args.momentum,
@@ -141,7 +156,7 @@ def main():
     print(network)
     
     # training neural net
-    network.fit( dataset, dataset, args.epochs, args.snapshot )
+    network.fit( train_dataset, val_dataset, args.epochs, args.snapshot )
     
     print("Optimization Finished!")
     print("DONE!!!")

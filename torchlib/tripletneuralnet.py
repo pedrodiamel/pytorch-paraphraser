@@ -265,14 +265,16 @@ class NeuralNetTripletNLP(NeuralNetAbstractNLP):
         self.encoder = None   
         self.voc = voc         
 
+        hidden_size = 300
+        self.embedding = nn.Embedding( voc.n_words, hidden_size ) 
         #if embedding is None:
         #   embedding = nn.Embedding( voc.n_words, hidden_size ) 
         #elif isinstance(data, torch.Tensor):
         #   embedding = embedding
         #else:   
-        embedding = nn.Embedding.from_pretrained( torch.from_numpy( voc.embeddings ).float(),  freeze=False )
+        #embedding = nn.Embedding.from_pretrained( torch.from_numpy( voc.embeddings ).float(),  freeze=False )
         
-        kw = {'embedding': embedding, 'pretrained': pretrained}
+        kw = {'embedding': self.embedding, 'pretrained': pretrained}
         self.encoder = netmodels.__dict__[arch](**kw)        
         self.net = netmodels.Tripletnet( self.encoder )        
         self.s_arch = arch

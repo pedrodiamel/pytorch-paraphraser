@@ -289,7 +289,7 @@ class NeuralNetAbstractNLP(object):
                 'state_dict': net.state_dict(),
                 'prec': prec,
                 'optimizer' : self.optimizer.state_dict(),
-                #'vocabolary': self.voc.__dict__,
+                'voc': self.voc,
                 #'embedding': self.embedding.state_dict()
 
             }, 
@@ -314,7 +314,7 @@ class NeuralNetAbstractNLP(object):
                 prec = checkpoint['prec']
                 net.load_state_dict(checkpoint['state_dict'])
                 self.optimizer.load_state_dict(checkpoint['optimizer'])
-                #self.voc.__dict__ =  checkpoint['vocabolary']                      
+                self.voc =  checkpoint['voc']                      
 
                 print("=> loaded checkpoint '{}' (epoch {})"
                     .format(resume, checkpoint['epoch']))
@@ -323,15 +323,19 @@ class NeuralNetAbstractNLP(object):
         self.start_epoch = start_epoch
         return start_epoch, prec
    
-    def load(self, pathnamemodel, voc):
+    def load(self, pathnamemodel ):
         bload = False
         voc = None
         if pathnamemodel:
             if os.path.isfile(pathnamemodel):
                 print("=> loading checkpoint '{}'".format(pathnamemodel))
                 checkpoint = torch.load( pathnamemodel ) if self.cuda else torch.load( pathnamemodel, map_location=lambda storage, loc: storage )
-                #voc.__dict__ =  checkpoint['vocabolary']       
-                self._create_model( checkpoint['arch'], voc, False )                 
+                #voc =  checkpoint['vocabolary']       
+                self._create_model( 
+                    checkpoint['arch'],
+                    checkpoint['voc'], 
+                    False 
+                    )                 
                 self.net.load_state_dict( checkpoint['state_dict'] )   
                 print("=> loaded checkpoint for {} arch!".format(checkpoint['arch']))
                 bload = True

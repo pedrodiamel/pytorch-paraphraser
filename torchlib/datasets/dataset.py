@@ -74,94 +74,6 @@ class TxtDataset( object ):
 
 
 
-
-class TxtTripletDataset( TxtDataset ):
-    '''TxtTripletDataset
-    '''
-    def __init__(self, 
-        pathname, 
-        namedataset,
-        filedataset,
-        filevocabulary, 
-        nbatch=100, 
-        batch_size=None,
-        max_length=10,
-        ):
-        super(TxtTripletDataset, self).__init__(  pathname, namedataset, filedataset, filevocabulary, nbatch, batch_size, max_length )
-
-    def getbatch(self):
-        return self.batch2TrainData( [random.choice(self.data.pairs) for _ in range(self.batch_size)]  )
-
-    def getbatchs(self):
-        for _ in range( self.nbatch ):
-            yield self.getbatch()
-
-    # Returns all items for a given batch of triplet
-    def batch2TrainData(self, pair_batch):  
-
-        #pair_batch.sort(key=lambda x: len(x[0].split(" ")), reverse=True)
-        triple_batch = get_triplets(pair_batch)
-        s1_batch, s2_batch, t1_batch = [], [], []
-        for triple in triple_batch :
-            s1_batch.append(triple[0])
-            s2_batch.append(triple[1])
-            t1_batch.append(triple[2])  
-        s1, s1_mask, s1_max_len = outputVar(s1_batch, self.voc)
-        s2, s2_mask, s2_max_len = outputVar(s2_batch, self.voc)
-        t1, t1_mask, t1_max_len = outputVar(t1_batch, self.voc)    
-        return (
-            s1, s1_mask, s1_max_len, 
-            s2, s2_mask, s2_max_len, 
-            t1, t1_mask, t1_max_len
-            )
-
-class TxtPairDataset( TxtDataset ):
-    '''TxtPairDataset
-    '''
-    def __init__(self, 
-        pathname, 
-        namedataset,
-        filedataset,
-        filevocabulary, 
-        nbatch=100, 
-        batch_size=None,
-        max_length=10,         
-        ):
-        super(TxtPairDataset, self).__init__(  pathname, namedataset, filedataset, filevocabulary, nbatch, batch_size, max_length )
-
-    def __len__(self):
-        return self.batch_size
-
-    def __getitem__(self, i):
-        pair = self.data[ i%len(self.data) ]
-        s1, s1_mask, s1_max_len = outputVar([pair[0]], self.voc)
-        s2, s2_mask, s2_max_len = outputVar([pair[1]], self.voc) 
-        return (
-            pair[0], s1, s1_mask, s1_max_len, 
-            pair[1], s2, s2_mask, s2_max_len, 
-            )       
-
-    def getbatch(self):
-        return self.batch2TrainData( [random.choice(self.data.pairs) for _ in range(self.batch_size)]  )
-
-    def getbatchs(self):
-        for _ in range( self.nbatch ):
-            yield self.getbatch()
-
-    # Returns all items for a given batch of triplet
-    def batch2TrainData(self, pair_batch):  
-        pair_batch.sort(key=lambda x: len(x[0].split(" ")), reverse=True)        
-        s1_batch, s2_batch = [], []
-        for pair in pair_batch :
-            s1_batch.append(pair[0])
-            s2_batch.append(pair[1])            
-        s1, s1_mask, s1_max_len = outputVar(s1_batch, self.voc)
-        s2, s2_mask, s2_max_len = outputVar(s2_batch, self.voc)          
-        return (
-            s1, s1_mask, s1_max_len, 
-            s2, s2_mask, s2_max_len, 
-            )
-
 class TxtNMTDataset( TxtDataset ):
     '''TxtNMTDataset
     '''
@@ -218,3 +130,113 @@ class TxtNMTDataset( TxtDataset ):
             output, mask, max_target_len, 
             )
 
+
+
+
+
+class TxtTripletDataset( TxtDataset ):
+    '''TxtTripletDataset
+    '''
+    def __init__(self, 
+        pathname, 
+        namedataset,
+        filedataset,
+        filevocabulary, 
+        nbatch=100, 
+        batch_size=None,
+        max_length=10,
+        ):
+        super(TxtTripletDataset, self).__init__( pathname, namedataset, filedataset, filevocabulary, nbatch, batch_size, max_length )
+
+        # add words
+        print('>> add new words on dataset')
+        for pair in self.data.pairs:
+            self.voc.addSentence(pair[0])
+            self.voc.addSentence(pair[1])
+        print("New counted words:")
+        print(self.voc.n_words)
+
+
+    def getbatch(self):
+        return self.batch2TrainData( [random.choice(self.data.pairs) for _ in range(self.batch_size)]  )
+
+    def getbatchs(self):
+        for _ in range( self.nbatch ):
+            yield self.getbatch()
+
+    # Returns all items for a given batch of triplet
+    def batch2TrainData(self, pair_batch):  
+
+        #pair_batch.sort(key=lambda x: len(x[0].split(" ")), reverse=True)
+        triple_batch = get_triplets(pair_batch)
+        s1_batch, s2_batch, t1_batch = [], [], []
+        for triple in triple_batch :
+            s1_batch.append(triple[0])
+            s2_batch.append(triple[1])
+            t1_batch.append(triple[2])  
+        s1, s1_mask, s1_max_len = outputVar(s1_batch, self.voc)
+        s2, s2_mask, s2_max_len = outputVar(s2_batch, self.voc)
+        t1, t1_mask, t1_max_len = outputVar(t1_batch, self.voc)    
+        return (
+            s1, s1_mask, s1_max_len, 
+            s2, s2_mask, s2_max_len, 
+            t1, t1_mask, t1_max_len
+            )
+
+
+
+class TxtPairDataset( TxtDataset ):
+    '''TxtPairDataset
+    '''
+    def __init__(self, 
+        pathname, 
+        namedataset,
+        filedataset,
+        filevocabulary, 
+        nbatch=100, 
+        batch_size=None,
+        max_length=10,         
+        ):
+        super(TxtPairDataset, self).__init__(  pathname, namedataset, filedataset, filevocabulary, nbatch, batch_size, max_length )
+
+        # add words
+        print('>> add new words on dataset')
+        for pair in self.data.pairs:
+            self.voc.addSentence(pair[0])
+            self.voc.addSentence(pair[1])
+        print("New counted words:")
+        print(self.voc.n_words)
+
+
+    def __len__(self):
+        return self.batch_size
+
+    def __getitem__(self, i):
+        pair = self.data[ i%len(self.data) ]
+        s1, s1_mask, s1_max_len = outputVar([pair[0]], self.voc)
+        s2, s2_mask, s2_max_len = outputVar([pair[1]], self.voc) 
+        return (
+            pair[0], s1, s1_mask, s1_max_len, 
+            pair[1], s2, s2_mask, s2_max_len, 
+            )       
+
+    def getbatch(self):
+        return self.batch2TrainData( [random.choice(self.data.pairs) for _ in range(self.batch_size)]  )
+
+    def getbatchs(self):
+        for _ in range( self.nbatch ):
+            yield self.getbatch()
+
+    # Returns all items for a given batch of triplet
+    def batch2TrainData(self, pair_batch):  
+        pair_batch.sort(key=lambda x: len(x[0].split(" ")), reverse=True)        
+        s1_batch, s2_batch = [], []
+        for pair in pair_batch :
+            s1_batch.append(pair[0])
+            s2_batch.append(pair[1])            
+        s1, s1_mask, s1_max_len = outputVar(s1_batch, self.voc)
+        s2, s2_mask, s2_max_len = outputVar(s2_batch, self.voc)          
+        return (
+            s1, s1_mask, s1_max_len, 
+            s2, s2_mask, s2_max_len, 
+            )
