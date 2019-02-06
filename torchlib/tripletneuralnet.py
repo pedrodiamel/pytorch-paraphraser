@@ -69,7 +69,7 @@ class NeuralNetTripletNLP(NeuralNetAbstractNLP):
         """
 
         cfg_opt= { 'momentum':0.9, 'weight_decay':5e-4 } 
-        cfg_scheduler= { 'step_size':30, 'gamma':0.1  }
+        cfg_scheduler= { 'step_size':50, 'gamma':0.1  }
                     
         super(NeuralNetTripletNLP, self).create( 
             arch, 
@@ -253,6 +253,7 @@ class NeuralNetTripletNLP(NeuralNetAbstractNLP):
             x_enc = self.encoder( x, x_mask )
         return x_enc
     
+    
     def _create_model(self, arch, voc, pretrained):
         """
         Create model
@@ -264,9 +265,11 @@ class NeuralNetTripletNLP(NeuralNetAbstractNLP):
         self.net = None
         self.encoder = None   
         self.voc = voc         
-
-        hidden_size = 300
-        self.embedding = nn.Embedding( voc.n_words, hidden_size ) 
+        self.n_layers = 4
+        self.hidden_size = 500
+        
+        
+        self.embedding = nn.Embedding( voc.n_words, self.hidden_size ) 
         #if embedding is None:
         #   embedding = nn.Embedding( voc.n_words, hidden_size ) 
         #elif isinstance(data, torch.Tensor):
@@ -274,7 +277,7 @@ class NeuralNetTripletNLP(NeuralNetAbstractNLP):
         #else:   
         #embedding = nn.Embedding.from_pretrained( torch.from_numpy( voc.embeddings ).float(),  freeze=False )
         
-        kw = {'embedding': self.embedding, 'pretrained': pretrained}
+        kw = {'hidden_size': self.hidden_size, 'n_layers': self.n_layers,  'embedding': self.embedding, 'pretrained': pretrained}
         self.encoder = netmodels.__dict__[arch](**kw)        
         self.net = netmodels.Tripletnet( self.encoder )        
         self.s_arch = arch

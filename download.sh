@@ -37,8 +37,8 @@ wget --header="Host: doc-0c-94-docs.googleusercontent.com" \
 -O $DIR/"commands.csv" -c
 
 
-cat $DIR/commandpairs.txt  $DIR/para-nmt-50m-demo/para-nmt-50m-small.txt  > commandpairsextsmall.txt
-cat $DIR/commandpairs.txt  $DIR/para-nmt-50m/para-nmt-50m.txt  > commandpairsext.txt
+cat $DIR/commandpairs.txt  $DIR/para-nmt-50m-demo/para-nmt-50m-small.txt  > $DIR/commandpairsextsmall.txt
+cat $DIR/commandpairs.txt  $DIR/para-nmt-50m/para-nmt-50m.txt  > $DIR/commandpairsext.txt
 
 
 echo 'DONE!!!!'

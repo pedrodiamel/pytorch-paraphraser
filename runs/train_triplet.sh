@@ -3,29 +3,29 @@
 # parameters
 DATA='~/.datasets/txt'
 NAMEDATASET='paranmt'
-DATASET='para-nmt-50m-demo/para-nmt-50m-small.txt'
+DATASET='commandpairsextsmall.txt' #commandpairsext.txt; para-nmt-50m-demo/para-nmt-50m-small.txt
 VOCFILE='para-nmt-50m-demo/ngram-word-concat-40.pickle'
 PROJECT='../out/netruns'
 EPOCHS=300
 NBATCH=500
-BATCHSIZE=64 #128
-LEARNING_RATE=0.0001
+BATCHSIZE=128 #128
+LEARNING_RATE=0.00001
 MOMENTUM=0.9
-PRINT_FREQ=50
-RESUME='chk000000.pth.tar'
+PRINT_FREQ=100
+RESUME='model_best.pth.tar'
 GPU=1
 ARCH='encoder_rnn_avg' #encoder_avg, encoder_rnn_avg
 LOSS='tripletloss'
 OPT='adam'
 SCHEDULER='step'
 SNAPSHOT=50
-EXP_NAME='nlp_'$ARCH'_'$LOSS'_'$OPT'_'$NAMEDATASET'_002'
+EXP_NAME='nlp_'$ARCH'_'$LOSS'_'$OPT'_'$NAMEDATASET'_005'
 
 
-rm -rf $PROJECT/$EXP_NAME/$EXP_NAME.log
-rm -rf $PROJECT/$EXP_NAME/
-mkdir $PROJECT
-mkdir $PROJECT/$EXP_NAME 
+# rm -rf $PROJECT/$EXP_NAME/$EXP_NAME.log
+# rm -rf $PROJECT/$EXP_NAME/
+# mkdir $PROJECT
+# mkdir $PROJECT/$EXP_NAME 
 
 
 ## execute

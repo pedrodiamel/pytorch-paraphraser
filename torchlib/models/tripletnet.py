@@ -86,7 +86,7 @@ def encoder_ave(pretrained=False, **kwargs):
 
 def encoder_rnn_avg(pretrained=False, **kwargs):
     """RNN"""
-    model = EncoderRNNAvg(hidden_size=300, n_layers=2, **kwargs) 
+    model = EncoderRNNAvg(**kwargs) 
     if pretrained:
         pass
     return model

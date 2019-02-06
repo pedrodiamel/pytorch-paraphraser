@@ -41,14 +41,18 @@ def random_query( SS1, SS2, SENC1, SENC2, nq=1, maxq=5 ):
 
 def main():
 
-    pathdata = './rec/data/para-nmt-50m-small.txt'
-    pathvocabulary = './rec/data/ngram-word-concat-40.pickle'
-    nbatch=1
+    pathname       = '~/.datasets/txt'
+    namedataset    = 'paranmt' #cmds, paranmt,
+    pathdata       = 'commandpairsextsmall.txt' #dbcommand.csv; commandpairsext.txt; para-nmt-50m/para-nmt-50m.txt; para-nmt-50m-demo/para-nmt-50m-small.txt 
+    pathvocabulary = 'para-nmt-50m-demo/ngram-word-concat-40.pickle'
+    pathmodel      = 'out/netruns/nlp_nmt_maskll_adam_paranmt_004/models/model_best.pth.tar'
+    nbatch=0
     batch_size=None
+    max_length=10
 
     project='./out/netruns'
-    name='nlp_encoder_ave_tripletloss_sgd_txt_001'
-    no_cuda=True
+    name='nlp_encoder_rnn_avg_tripletloss_adam_paranmt_005'
+    no_cuda=False
     seed=0
     gpu=0
     parallel=False
@@ -57,11 +61,15 @@ def main():
     # datasets
     # training dataset
     dataset = TxtPairDataset(
-        pathname=pathdata,  
-        pathvocabulary=pathvocabulary,
+        pathname=pathname,
+        namedataset=namedataset,
+        filedataset=pathdata,
+        filevocabulary=pathvocabulary,
         nbatch=nbatch,
-        batch_size=batch_size
+        batch_size=batch_size,
+        max_length=max_length,
     )
+        
 
     print( len(dataset) )
 
@@ -76,7 +84,7 @@ def main():
         gpu=gpu
         )
 
-    if network.load( pathmodel, dataset.voc ) is not True:
+    if network.load( pathmodel ) is not True:
         raise ValueError('Error: model not load ...')
     
     print( 'load neuralnet ... ' )
@@ -95,9 +103,9 @@ def main():
             sample = dataset[i]
             ss1, s1, s1_mask, s1_len, ss2, s2, s2_mask, s2_len = sample
         
-            #if cuda:
-            #    s1 = s1.cuda(); s1_mask = s1_mask.cuda()
-            #    s2 = s2.cuda(); s2_mask = s2_mask.cuda()           
+            if not no_cuda:
+               s1 = s1.cuda(); s1_mask = s1_mask.cuda()
+               s2 = s2.cuda(); s2_mask = s2_mask.cuda()           
 
             s1_enc = network.encoder( s1, s1_mask )
             s2_enc = network.encoder( s2, s2_mask )
@@ -105,10 +113,9 @@ def main():
             SS2.append(ss2)
             SENC1.append(s1_enc)
             SENC2.append(s2_enc)
-
             
-            # if i > 100:
-            #     break
+            if i > 100:
+                break
 
     SENC1 = np.concatenate( SENC1, axis=0 )
     SENC2 = np.concatenate( SENC2, axis=0 )

@@ -95,7 +95,7 @@ class txtParaNmt50mProvide( object ):
     def __len__(self):
         return len( self.pairs )
     def __getitem__(self, i):
-        return self.pairs(i)
+        return self.pairs[i]
     
     def load( self, pathname ):
         print("Reading lines...")
