@@ -3,7 +3,7 @@
 # parameters
 DATA='~/.datasets/txt'
 NAMEDATASET='paranmt'
-DATASET='commandpairsext.txt' #commandpairsext.txt; para-nmt-50m/para-nmt-50m.txt; para-nmt-50m-demo/para-nmt-50m-small.txt
+DATASET='commandpairsextsmall.txt' #commandpairsext.txt; para-nmt-50m/para-nmt-50m.txt; para-nmt-50m-demo/para-nmt-50m-small.txt
 VOCFILE='para-nmt-50m-demo/ngram-word-concat-40.pickle'
 PROJECT='../out/netruns'
 EPOCHS=1000
@@ -19,7 +19,7 @@ LOSS='maskll'
 OPT='adam'
 SCHEDULER='step'
 SNAPSHOT=50
-EXP_NAME='nlp_'$ARCH'_'$LOSS'_'$OPT'_'$NAMEDATASET'_BIG_005'
+EXP_NAME='nlp_'$ARCH'_'$LOSS'_'$OPT'_'$NAMEDATASET'_006'
 
 
 #NET CONFIGURATE

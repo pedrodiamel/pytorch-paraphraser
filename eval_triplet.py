@@ -4,7 +4,10 @@ import os
 import random 
 import numpy as np
 
+from tqdm import tqdm
 from sklearn.metrics.pairwise import cosine_similarity
+from nltk.translate.bleu_score import corpus_bleu, SmoothingFunction
+
 
 import torch
 import torch.nn.functional as F
@@ -12,6 +15,27 @@ import torch.nn.functional as F
 from torchlib.datasets.dataset  import TxtPairDataset
 from torchlib.tripletneuralnet import NeuralNetTripletNLP
 
+
+def metrics( SS1, SS2, SENC1, SENC2 ):
+    
+    bleus = []
+    for i in tqdm( range( len(SS1) ) ):
+        ss1 = SS1[i]
+        s1_enc = SENC1[i,:] 
+        
+        dist = np.array([ cosine_similarity( s1_enc.reshape(1, -1), s.reshape(1, -1) )[0,0] for s in SENC2 ])
+        j = np.argmin( dist )
+        ss2_hyp = SS2[j]
+        ss2_ref = SS2[i]
+                
+        bleu = corpus_bleu( [ [ss2_ref] ], [ ss2_hyp ] ) 
+        bleus.append( bleu )       
+        
+        #if i < 100: break
+        
+    bleus = np.stack( bleus, axis=-1 ).mean()
+    return bleus
+        
 
 def random_query( SS1, SS2, SENC1, SENC2, nq=1, maxq=5 ):
 
@@ -43,7 +67,7 @@ def main():
 
     pathname       = '~/.datasets/txt'
     namedataset    = 'paranmt' #cmds, paranmt,
-    pathdata       = 'commandpairsextsmall.txt' #dbcommand.csv; commandpairsext.txt; para-nmt-50m/para-nmt-50m.txt; para-nmt-50m-demo/para-nmt-50m-small.txt 
+    pathdata       = 'commandpairsextsmall.txt' #dbcommand.csv; commandpairsextsmall.txt; commandpairsext.txt; para-nmt-50m/para-nmt-50m.txt; para-nmt-50m-demo/para-nmt-50m-small.txt 
     pathvocabulary = 'para-nmt-50m-demo/ngram-word-concat-40.pickle'
     pathmodel      = 'out/netruns/nlp_nmt_maskll_adam_paranmt_004/models/model_best.pth.tar'
     nbatch=0
@@ -57,6 +81,7 @@ def main():
     gpu=0
     parallel=False
     pathmodel=os.path.join( project, name, 'models/model_best.pth.tar' )
+    brepresentation=True
 
     # datasets
     # training dataset
@@ -90,40 +115,51 @@ def main():
     print( 'load neuralnet ... ' )
     print( network )
 
-    #pair_encoder = network.predict( dataset )
-    #print( pair_encoder.shape )
+    
+    reppathname = os.path.join( project, 'rep_{}_{}.pth'.format(name, namedataset ) )
+    if brepresentation:
+        # represenation
+        SS1, SS2, SENC1, SENC2 = network.pairsrepresentation( dataset )
+        torch.save( { 'SS1':SS1, 'SS2':SS2, 'SENC1':SENC1, 'SENC2':SENC2 }, reppathname )
+    else:
+        rep = torch.load(reppathname)
+        SS1, SS2, SENC1, SENC2 = rep['SS1'], rep['SS2'], rep['SENC1'], rep['SENC2']
 
-    #representation 
-    network.net.eval()
-    network.encoder.eval()
+#     #representation 
+#     network.net.eval()
+#     network.encoder.eval()
+#     SS1, SS2, SENC1, SENC2 = [],[],[],[]
+#     with torch.no_grad():
+#         for i in range( len(dataset) ):
+#             sample = dataset[i]
+#             ss1, s1, s1_mask, s1_len, ss2, s2, s2_mask, s2_len = sample
+# #             if not no_cuda:
+# #                s1 = s1.cuda(); s1_mask = s1_mask.cuda()
+# #                s2 = s2.cuda(); s2_mask = s2_mask.cuda()           
+# #             s1_enc = network.encoder( s1, s1_mask )
+# #             s2_enc = network.encoder( s2, s2_mask )
+#             s1_enc = network( s1, s1_mask )
+#             s2_enc = network( s2, s2_mask )
+#             SS1.append(ss1)
+#             SS2.append(ss2)
+#             SENC1.append(s1_enc)
+#             SENC2.append(s2_enc)
+#             if i > 100:
+#                 break
+#     SENC1 = np.concatenate( SENC1, axis=0 )
+#     SENC2 = np.concatenate( SENC2, axis=0 )
 
-    SS1, SS2, SENC1, SENC2 = [],[],[],[]
-    with torch.no_grad():
-        for i in range( len(dataset) ):
-            sample = dataset[i]
-            ss1, s1, s1_mask, s1_len, ss2, s2, s2_mask, s2_len = sample
-        
-            if not no_cuda:
-               s1 = s1.cuda(); s1_mask = s1_mask.cuda()
-               s2 = s2.cuda(); s2_mask = s2_mask.cuda()           
-
-            s1_enc = network.encoder( s1, s1_mask )
-            s2_enc = network.encoder( s2, s2_mask )
-            SS1.append(ss1)
-            SS2.append(ss2)
-            SENC1.append(s1_enc)
-            SENC2.append(s2_enc)
-            
-            if i > 100:
-                break
-
-    SENC1 = np.concatenate( SENC1, axis=0 )
-    SENC2 = np.concatenate( SENC2, axis=0 )
 
     print( SENC1.shape )
     print( SENC2.shape )
 
     random_query( SS1, SS2, SENC1, SENC2 , nq=2 )
+    
+    
+    # metric calculate 
+    bleus = metrics( SS1, SS2, SENC1, SENC2 )  
+    print('BLEU: ', bleus)
+    
     
 
 if __name__ == '__main__':

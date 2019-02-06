@@ -14,18 +14,18 @@ MOMENTUM=0.9
 PRINT_FREQ=100
 RESUME='model_best.pth.tar'
 GPU=1
-ARCH='encoder_rnn_avg' #encoder_avg, encoder_rnn_avg
+ARCH='encoder_avg' #encoder_avg, encoder_rnn_avg
 LOSS='tripletloss'
 OPT='adam'
 SCHEDULER='step'
 SNAPSHOT=50
-EXP_NAME='nlp_'$ARCH'_'$LOSS'_'$OPT'_'$NAMEDATASET'_005'
+EXP_NAME='nlp_'$ARCH'_'$LOSS'_'$OPT'_'$NAMEDATASET'_006'
 
 
-# rm -rf $PROJECT/$EXP_NAME/$EXP_NAME.log
-# rm -rf $PROJECT/$EXP_NAME/
-# mkdir $PROJECT
-# mkdir $PROJECT/$EXP_NAME 
+rm -rf $PROJECT/$EXP_NAME/$EXP_NAME.log
+rm -rf $PROJECT/$EXP_NAME/
+mkdir $PROJECT
+mkdir $PROJECT/$EXP_NAME 
 
 
 ## execute

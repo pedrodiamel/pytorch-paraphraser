@@ -202,46 +202,59 @@ class NeuralNetTripletNLP(NeuralNetAbstractNLP):
                       
         return acc
  
-    def test(self, dataset):
-        k=0
-        P=[]        
-        # switch to evaluate mode
-        self.net.eval()
-        with torch.no_grad():
-            end = time.time()
-            for i, batch in enumerate( tqdm( dataset.getbatchs() ) ):
-                # get data
-                s1, s1_mask, s1_max_len, s2, s2_mask, s2_max_len = batch                             
-                if self.cuda:
-                    s1 = s1.cuda(); s1_mask = s1_mask.cuda()
-                    s2 = s2.cuda(); s2_mask = s2_mask.cuda()
-                # fit (forward)
-                s1_enc = self.encoder( s1, s1_mask )
-                s2_enc = self.encoder( s2, s2_mask )
-                p_enc = torch.stack( (s1_enc, s2_enc), dim=2 )
-                P.append( p_enc )
-        P = torch.cat( P, dim=0 )
-        return P
 
+    def pairsrepresentation(self, dataset):
+        
+        SS1, SS2, SENC1, SENC2 = [],[],[],[]        
+        # switch to evaluate mode
+        self.net.eval()
+        with torch.no_grad():
+            end = time.time()
+            for i in  tqdm( range(len(dataset)) ):
+                # get data
+                batch = dataset[i]   
+                ss1, s1, s1_mask, s1_len, ss2, s2, s2_mask, s2_len = batch
+                
+                if self.cuda:
+                    s1 = s1.cuda(); s1_mask = s1_mask.cuda()
+                    s2 = s2.cuda(); s2_mask = s2_mask.cuda()
+                
+                # fit (forward)
+                s1_enc = self.encoder( s1, s1_mask )
+                s2_enc = self.encoder( s2, s2_mask )
+                                
+                SS1.append(ss1)
+                SS2.append(ss2)
+                SENC1.append(s1_enc)
+                SENC2.append(s2_enc)
+                
+                #if i > 100:
+                #    break
+                
+        SENC1 = torch.cat( SENC1, dim=0 )
+        SENC2 = torch.cat( SENC2, dim=0 )
+        
+        return SS1, SS2, SENC1, SENC2
+
+    
     def predict(self, dataset):        
-        P_enc=[]; k=0      
+        P_enc=[]    
         # switch to evaluate mode
         self.net.eval()
         with torch.no_grad():
             end = time.time()
             for i, batch in enumerate( tqdm( dataset.getbatchs() ) ):
                 # get data
-                s1, s1_mask, s1_max_len, s2, s2_mask, s2_max_len = batch                             
+                s1, s1_mask, s1_max_len = batch                             
                 if self.cuda:
-                    s1 = s1.cuda(); s1_mask = s1_mask.cuda()
-                    s2 = s2.cuda(); s2_mask = s2_mask.cuda()
+                    s1 = s1.cuda(); 
+                    s1_mask = s1_mask.cuda()
                 # fit (forward)
                 s1_enc = self.encoder( s1, s1_mask )
-                s2_enc = self.encoder( s2, s2_mask )
-                p_enc = torch.stack( (s1_enc, s2_enc), dim=2 )
-                P_enc.append( p_enc )
+                P_enc.append( s1_enc )
         P_enc = torch.cat( P_enc, dim=0 )
         return P_enc
+    
 
     def __call__(self, x, x_mask):       
         # switch to evaluate mode
