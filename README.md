@@ -32,8 +32,6 @@ This project providers users the ability to do paraphrase generation for sentenc
 |---------:|---------:|:----------:|:---------:|:-------------------------------------|
 | @Moto    | AttNMT   | CMDS       | 0.7163    | Train: DB(para-nmt-5m-short+cmd)     |
 | @Moto    | AttNMT   | CMDS+G     | 0.1351    | Train: DB(para-nmt-5m-shoet+cmd)     |
-
-
 | @Learn   | TRP+GRU  | CMDS+G     | 0.0047    | Train: DB(para-nmt-5m-shoet+cmd)     |
 
 
